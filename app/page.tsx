@@ -1,3 +1,6 @@
+import CarCards from "@/components/CarCards";
+import { ImagesSliderDemo } from "@/components/contact";
+import Customers from "@/components/customers";
 import Footer from "@/components/footer";
 import HeroSection from "@/components/hero";
 import Navbar from "@/components/navbar";
@@ -11,6 +14,9 @@ export default function Home() {
       <Navbar/>
       <HeroSection/>
       <ScrollBasedVelocityDemo/>
+      <CarCards/>
+      <Customers/>
+      <ImagesSliderDemo/>
       <Footer/>
     </main>
       
