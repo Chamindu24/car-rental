@@ -5,11 +5,13 @@ import Footer from "@/components/footer";
 import HeroSection from "@/components/hero";
 import Navbar from "@/components/navbar";
 import { ScrollBasedVelocityDemo } from "@/components/ScrollBasedVelocity";
-import { Scroll } from "lucide-react";
-import Image from "next/image";
 
-export default function Home() {
+
+
+export default async function Home() {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return (
+    
     <main>
       <Navbar/>
       <HeroSection/>

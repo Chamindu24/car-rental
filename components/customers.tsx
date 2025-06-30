@@ -43,7 +43,7 @@ export default function Customers() {
   ];
 
   return (
-    <section className="w-full px-4 py-16 md:py-24 bg-neutral-100">
+    <section className="w-full px-4 py-16 md:py-24 bg-gradient-to-br from-neutral-50 to-neutral-200">
       <div className="max-w-7xl mx-auto space-y-8">
         <h2 className="text-3xl md:text-5xl font-bold text-center">
           Our Customers
