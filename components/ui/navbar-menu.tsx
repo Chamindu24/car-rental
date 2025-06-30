@@ -15,6 +15,7 @@ const transition = {
 
 export const MenuItem = ({
   setActive,
+  
   active,
   item,
   children,
@@ -43,7 +44,7 @@ export const MenuItem = ({
               <motion.div
                 transition={transition}
                 layoutId="active" // layoutId ensures smooth animation
-                className="bg-white dark:bg-black backdrop-blur-sm rounded-2xl overflow-hidden border border-black/[0.2] dark:border-white/[0.2] shadow-xl"
+                className="bg-yellow-100 dark:bg-black backdrop-blur-sm rounded-2xl overflow-hidden border border-black/[0.2] dark:border-white/[0.2] shadow-xl"
               >
                 <motion.div
                   layout // layout ensures smooth animation
@@ -70,7 +71,7 @@ export const Menu = ({
   return (
     <nav
       onMouseLeave={() => setActive(null)} // resets the state
-      className="relative rounded-full border border-transparent dark:bg-black dark:border-white/[0.2] bg-white shadow-input flex justify-center space-x-4 px-8 py-6 "
+      className="relative rounded-full  border-transparent dark:bg-black  bg-amber-200 opacity-80 shadow-input flex justify-center space-x-4 px-8 py-4  border-2 broder-black/[0.2] dark:border-white/[0.2] backdrop-blur-sm hover:opacity-100 transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-black/20 dark:hover:shadow-white/20"
     >
       {children}
     </nav>
@@ -98,7 +99,7 @@ export const ProductItem = ({
         className="shrink-0 rounded-md shadow-2xl"
       />
       <div>
-        <h4 className="text-xl font-bold mb-1 text-black dark:text-white">
+        <h4 className="text-3xl  font-extrabold tracking-wider mb-1 text-black dark:text-white">
           {title}
         </h4>
         <p className="text-neutral-700 text-sm max-w-[10rem] dark:text-neutral-300">
