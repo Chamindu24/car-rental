@@ -5,6 +5,7 @@ import Footer from "@/components/footer";
 import HeroSection from "@/components/hero";
 import Navbar from "@/components/navbar";
 import { ScrollBasedVelocityDemo } from "@/components/ScrollBasedVelocity";
+import WhyChooseUs from "@/components/WhyChooseUs";
 
 
 
@@ -17,6 +18,7 @@ export default async function Home() {
       <HeroSection/>
       <ScrollBasedVelocityDemo/>
       <CarCards/>
+      <WhyChooseUs />
       <Customers/>
       <ImagesSliderDemo/>
       <Footer/>
