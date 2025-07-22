@@ -13,7 +13,7 @@ export default function HeroSection() {
   useEffect(() => {
     const loop = async () => {
       while (true) {
-        await controls.start({ scale: 1.1, transition: { duration: 0.9 } });
+        await controls.start({ scale: 1.05, transition: { duration: 0.9 } });
         await controls.start({ scale: 1, transition: { duration: 0.3 } });
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
@@ -43,41 +43,42 @@ export default function HeroSection() {
   }, [controls, textControls]);
 
   return (
-    <section className="relative bg-gradient-to-br from-neutral-50 to-neutral-100 text-black py-28 px-6 md:px-12 overflow-hidden">
-      {/* Decorative elements with yellow accents */}
+    <section className="relative bg-gradient-to-br from-neutral-50 to-neutral-100 text-black py-16 md:py-28 px-4 sm:px-6 md:px-12 overflow-hidden">
+      {/* Decorative elements with gray/ash accents */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent"></div>
-        <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-yellow-400/10 blur-3xl"></div>
-        <div className="absolute top-1/3 -right-20 w-96 h-96 rounded-full bg-yellow-500/10 blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-yellow-300/20 blur-xl"></div>
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-gray-200/5 to-transparent"></div>
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-gray-400/10 blur-3xl"></div>
+        <div className="absolute top-1/3 -right-20 w-96 h-96 rounded-full bg-gray-500/10 blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-gray-300/20 blur-xl"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-12 relative z-10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-8 md:gap-12 relative z-10">
         {/* Text section */}
         <motion.div
-          className="space-y-6"
+          className="space-y-4 md:space-y-6 text-center md:text-left"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-            <span className="bg-gradient-to-r from-primary to-yellow-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+            <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
               Drive Your <motion.span 
-                className="inline-block italic text-yellow-500"
+                className="inline-block italic text-gray-600"
                 animate={textControls}
               >
-                Dream
-              </motion.span> Car
+                Perfect
+              </motion.span> Ride
             </span>
           </h1>
+           <span className="italic"></span> 
           
-          <p className="text-lg md:text-xl text-neutral-600 max-w-lg">
-            <span className="font-semibold text-yellow-600">Premium vehicles</span> at your fingertips. 
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-lg mx-auto md:mx-0">
+            <span className="font-semibold text-gray-700">Premium vehicles</span> at your fingertips. 
             Whether you need a driver or want to take the wheel yourself, experience the{" "}
             <span className="relative inline-block">
               <span className="relative z-10">thrill of luxury</span>
               <motion.span 
-                className="absolute bottom-0 left-0 w-full h-2 bg-yellow-300/40"
+                className="absolute bottom-0 left-0 w-full h-2 bg-gray-300/40"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 1, delay: 0.5 }}
@@ -86,9 +87,9 @@ export default function HeroSection() {
             with our seamless rental service.
           </p>
 
-          <div className="flex flex-wrap gap-4">
-            <Link href="/rent?driver=true">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-yellow-500 hover:from-primary/90 hover:to-yellow-500/90 text-white shadow-lg transition-all group">
+          <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-3 sm:gap-4">
+            <Link href="/rent?driver=true" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-gray-800 to-gray-600 hover:from-gray-700 hover:to-gray-500 text-white shadow-lg transition-all group">
                 <motion.div
                   className="flex items-center gap-2"
                   whileHover={{ scale: 1.05 }}
@@ -105,8 +106,8 @@ export default function HeroSection() {
               </Button>
             </Link>
 
-            <Link href="/rent?driver=false">
-              <Button size="lg" variant="outline" className="text-black border-neutral-300 hover:bg-white hover:text-black hover:border-white shadow-sm hover:shadow-md transition-all group">
+            <Link href="/rent?driver=false" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-gray-800 border-gray-300 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 shadow-sm hover:shadow-md transition-all group">
                 <motion.div
                   className="flex items-center gap-2"
                   whileHover={{ scale: 1.05 }}
@@ -117,7 +118,7 @@ export default function HeroSection() {
                     animate={{ rotate: [0, 15, -15, 0] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                   >
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
+                    <Sparkles className="w-4 h-4 text-gray-500" />
                   </motion.span>
                 </motion.div>
               </Button>
@@ -125,30 +126,28 @@ export default function HeroSection() {
           </div>
 
           <motion.div
-            className="flex flex-wrap items-center gap-6 pt-4"
+            className="flex flex-wrap justify-center md:justify-start items-center gap-4 pt-2 md:pt-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <div className="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-100">
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <StarIcon key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <StarIcon key={i} className="w-4 h-4 text-gray-400 fill-gray-400" />
                 ))}
               </div>
-              <span className="text-sm font-medium text-yellow-700">5.0 (2.4k reviews)</span>
+              <span className="text-sm font-medium text-gray-700">5.0 (2.4k reviews)</span>
             </div>
-            
-           
           </motion.div>
         </motion.div>
 
-        {/* Car image */}
-        <div className="relative w-full h-72 md:h-96">
+        {/* Car image - hidden on small screens if needed */}
+        <div className="relative w-full h-64 sm:h-72 md:h-96 mt-8 md:mt-0">
           <motion.img
             src="/car.png"
             alt="Luxury Car Rental"
-            className="w-full h-full object-contain drop-shadow-4xl"
+            className="w-full h-full object-contain drop-shadow-2xl md:drop-shadow-4xl"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -161,20 +160,18 @@ export default function HeroSection() {
           />
 
           <motion.div
-            className="absolute -bottom-6 -right-6 bg-white px-4 py-2 rounded-full shadow-md flex items-center gap-2"
+            className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-white px-3 sm:px-4 py-1 sm:py-2 rounded-full shadow-md flex items-center gap-2"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.6 }}
           >
             <motion.div 
-              className="w-3 h-3 rounded-full bg-green-500"
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ repeat: Infinity, duration: 1.5 }}
             />
-            <span className="text-sm font-medium">24/7 Available</span>
+            <span className="text-xs sm:text-sm font-medium">24/7 Available</span>
           </motion.div>
-
-          
         </div>
       </div>
     </section>
