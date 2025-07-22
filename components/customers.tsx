@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
+import { AuroraBackground } from "./aurora-background";
 
 export default function Customers() {
   const plugin = useRef(
@@ -43,7 +44,8 @@ export default function Customers() {
   ];
 
   return (
-    <section className="w-full px-4 py-12 md:py-24 bg-gradient-to-br from-neutral-50 to-neutral-100">
+    <AuroraBackground>
+    <section className="w-full px-4 py-12 md:py-24 bg-gradient-to-br from-white to-white">
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
         <h2 className="text-2xl md:text-5xl font-bold text-center">
           Our Customers
@@ -127,5 +129,6 @@ export default function Customers() {
         </div>
       </div>
     </section>
+    </AuroraBackground>
   );
 }
