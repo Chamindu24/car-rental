@@ -24,7 +24,7 @@ export function ImagesSliderDemo() {
   ];
 
   return (
-    <section className="w-full px-4 py-12 md:py-20 bg-gradient-to-br from-neutral-50 to-neutral-200">
+    <section className="w-full px-4 py-12 md:py-20 bg-gradient-to-br from-neutral-50 to-neutral-50">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column: Static + Slider */}
         <div className="col-span-1 space-y-6">

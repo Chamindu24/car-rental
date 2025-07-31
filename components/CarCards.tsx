@@ -231,7 +231,7 @@ export default function EnhancedCarCards() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-white via-gray-200 to-gray-200 relative overflow-hidden">
+    <section className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-50 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gray-800/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gray-700/10 rounded-full blur-3xl animate-pulse" />
