@@ -46,80 +46,78 @@ export default function Customers() {
   return (
 
     <div
-      className="bg-fixed bg-cover bg-center"
+      className="bg-cover bg-center md:bg-fixed"
       style={{
-        backgroundImage: "url('/stick1.jpg')", // use root-relative path to public/
-        backgroundAttachment: 'fixed', // This is the key for the 'sticky' effect
-        backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fallback and slight overlay for readability
+        backgroundImage: "url('/stick1.jpg')",
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
       }}
-
     >
-      <section className="w-full min-h-[94vh] px-4 py-4 md:py-12 relative bg-white/3 backdrop-blur-xs flex items-center">
-        <div className="max-w-7xl mx-auto space-y-2 md:space-y-8 ">
-          <h2 className="text-3xl md:text-6xl text-neutral-50 font-bold font-mono text-center tracking-widest">
+      <section className="w-full min-h-[70vh] md:min-h-[94vh] px-4 py-6 md:py-12 relative bg-white/3 backdrop-blur-xs flex items-center">
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/30 via-black/10 to-transparent md:from-black/40 md:via-black/20"></div>
+        <div className="relative max-w-7xl mx-auto space-y-4 md:space-y-8 w-full">
+          <h2 className="text-2xl sm:text-3xl md:text-6xl text-neutral-50 font-bold font-mono text-center tracking-widest">
             Our Customers
           </h2>
          
 
           {/* Statistics Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 px-2 md:px-4 items-stretch">
             {/* Number of Vehicles */}
             <div className="text-center ">
-              <p className="text-5xl md:text-8xl font-bold text-neutral-300 ">
+              <p className="text-4xl sm:text-5xl md:text-8xl font-bold text-neutral-300 leading-none truncate">
                 <CountUp from={0} to={20} duration={2} />
-                <span className="text-neutral-300">
+                <span className="text-neutral-300 ml-1 align-super">
                   <LineShadowText className="italic" shadowColor={"white"}>+</LineShadowText>
                 </span>
               </p>
-              <p className="text-lg md:text-2xl mt-1 md:mt-2 text-neutral-100 tracking-widest">
+              <p className="text-sm sm:text-lg md:text-2xl mt-1 md:mt-2 text-neutral-100 tracking-widest">
                 Vehicles Available
               </p>
             </div>
 
             {/* Happy Customers */}
             <div className="text-center">
-              <p className="text-5xl md:text-8xl font-bold text-neutral-300">
-              <CountUp from={0} to={1000} duration={1} />
-              <span className="text-neutral-300">
-                <LineShadowText className="italic" shadowColor={"white"}>+</LineShadowText>
-              </span>
+              <p className="text-4xl sm:text-5xl md:text-8xl font-bold text-neutral-300 leading-none truncate">
+                <CountUp from={0} to={1000} duration={1} />
+                <span className="text-neutral-300 ml-1 align-super">
+                  <LineShadowText className="italic" shadowColor={"white"}>+</LineShadowText>
+                </span>
               </p>
-              <p className="text-lg md:text-2xl mt-1 md:mt-2 text-neutral-100 tracking-widest">
-              Happy Customers
+              <p className="text-sm sm:text-lg md:text-2xl mt-1 md:mt-2 text-neutral-100 tracking-widest">
+                Happy Customers
               </p>
             </div>
 
             {/* Years of Experience */}
             <div className="text-center">
-              <p className="text-5xl md:text-8xl font-bold text-neutral-300">
+              <p className="text-4xl sm:text-5xl md:text-8xl font-bold text-neutral-300 leading-none truncate">
                 <CountUp from={0} to={8} duration={2} />
-                <span className="text-neutral-300">
+                <span className="text-neutral-300 ml-1 align-super">
                   <LineShadowText className="italic" shadowColor={"black"}>+</LineShadowText>
                 </span>
               </p>
-              <p className="text-lg md:text-2xl mt-1 md:mt-2 text-neutral-100 tracking-widest">
+              <p className="text-sm sm:text-lg md:text-2xl mt-1 md:mt-2 text-neutral-100 tracking-widest">
                 Years of Experience
               </p>
             </div>
           </div>
 
           {/* Customer Reviews Row */}
-          <div className="w-full px-2">
+          <div className="w-full px-2 md:px-0">
             <Carousel
               plugins={[plugin.current]}
-              className="w-full max-w-4xl mx-auto relative"
+              className="w-full max-w-4xl mx-auto relative touch-pan-y"
               loop
-              onMouseEnter={plugin.current.stop}
-              onMouseLeave={plugin.current.reset}
+              onMouseEnter={() => plugin.current?.stop?.()}
+              onMouseLeave={() => plugin.current?.reset?.()}
             >
               <CarouselContent className="-ml-1">
                 {testimonials.map((testimonial, index) => (
                   <CarouselItem key={index} className="pl-1 md:pl-4">
                     <div className="mt-2 p-1">
-                      {/* Adjusted Card for better readability against a potentially busy background */}
-                      <Card className="mt-4 px-4 py-2 md:px-5 md:py-2 border border-white/90 text-black bg-black/40 shadow-lg backdrop-blur-sm rounded-3xl text-base md:text-xl hover:bg-black/25 transition-all text-center">
-                        <CardContent className="p-2 space-y-1 md:space-y-2">
-                          <p className="text-sm md:text-base text-neutral-50 italic">
+                      <Card className="mt-4 px-3 py-3 md:px-5 md:py-4 border border-white/70 text-white bg-black/40 shadow-lg backdrop-blur-sm rounded-2xl md:rounded-3xl text-sm md:text-xl hover:bg-black/30 transition-all text-center">
+                        <CardContent className="p-3 space-y-2">
+                          <p className="text-sm md:text-base text-neutral-50 italic break-words">
                             "{testimonial.review}"
                           </p>
                           <p className="text-xs md:text-sm font-semibold text-neutral-100">

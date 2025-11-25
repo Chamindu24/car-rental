@@ -75,6 +75,16 @@ export default function VehiclesPage() {
     transmission: '',
     hasAC: null as boolean | null,
   });
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('isAdmin');
+      setIsAdmin(v === 'true');
+    } catch (e) {
+      setIsAdmin(false);
+    }
+  }, []);
 
   const handleRent = (vehicleId?: string) => {
     const vehicle = filteredVehicles.find(v => v.id === vehicleId);
@@ -158,10 +168,12 @@ export default function VehiclesPage() {
               <Home className="w-4 h-4" />
               Home
             </Button>
-            <Button onClick={() => router.push("/add-car")} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Vehicle
-            </Button>
+            {isAdmin && (
+              <Button onClick={() => router.push("/add-car")} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Add Vehicle
+              </Button>
+            )}
           </div>
 
             <select
@@ -281,13 +293,15 @@ export default function VehiclesPage() {
                     >
                       Rent
                     </Button>
-                    <Button 
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => handleEdit(vehicle.id)}
-                    >
-                      Edit
-                    </Button>
+                    {isAdmin && (
+                      <Button 
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleEdit(vehicle.id)}
+                      >
+                        Edit
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </motion.div>
@@ -312,7 +326,9 @@ export default function VehiclesPage() {
               <p className="mb-4">{selected!.price} • {selected!.type} • {selected!.fuelType}</p>
               <div className="flex gap-2">
                 <Button onClick={() => { handleRent(selected!.id); closeDetails(); }} variant="default">Rent</Button>
-                <Button onClick={() => { handleEdit(selected!.id); closeDetails(); }} variant="outline">Edit</Button>
+                {isAdmin && (
+                  <Button onClick={() => { handleEdit(selected!.id); closeDetails(); }} variant="outline">Edit</Button>
+                )}
               </div>
             </div>
           </div>

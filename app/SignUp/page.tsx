@@ -27,9 +27,15 @@ export default function SignInPage() {
     // Check credentials (demo purposes only - in real app, use proper auth)
     if (email === "chamara@gmail.com" && password === "chamara") {
       toast.success("Login successful!");
+      // mark as admin in localStorage so other pages can show admin controls
+      try {
+        localStorage.setItem('isAdmin', 'true');
+      } catch (e) {
+        // ignore localStorage errors in non-browser env
+      }
       setTimeout(() => {
         router.push("/vehicles");
-      }, 1000);
+      }, 800);
     } else {
       toast.error("Invalid credentials");
     }

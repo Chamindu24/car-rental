@@ -12,6 +12,22 @@ interface Props {
 export default function VehicleDetail({ vehicle }: Props) {
   const images: string[] = vehicle.images && vehicle.images.length ? vehicle.images : vehicle.image ? [vehicle.image] : [];
   const [selected, setSelected] = useState<number>(0);
+  const [rentalDate, setRentalDate] = useState<string>(() => {
+    try {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
+    } catch (e) {
+      return '';
+    }
+  });
+  const [rentalTime, setRentalTime] = useState<string>(() => {
+    try {
+      const d = new Date();
+      return d.toTimeString().slice(0,5);
+    } catch (e) {
+      return '';
+    }
+  });
 
   const main = images[selected] ?? vehicle.image ?? '/placeholder.png';
 
@@ -80,8 +96,43 @@ export default function VehicleDetail({ vehicle }: Props) {
               </div>
 
               <div className="flex gap-3">
-                <Button className="flex-1">Rent Now</Button>
-                <Button variant="outline" className="flex-1">Message Owner</Button>
+                <div className="flex-1">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="date"
+                      value={rentalDate}
+                      onChange={(e) => setRentalDate(e.target.value)}
+                      className="px-3 py-2 border rounded-md w-1/2"
+                      aria-label="Rental date"
+                    />
+                    <input
+                      type="time"
+                      value={rentalTime}
+                      onChange={(e) => setRentalTime(e.target.value)}
+                      className="px-3 py-2 border rounded-md w-1/2"
+                      aria-label="Rental time"
+                    />
+                  </div>
+                  <Button className="w-full" onClick={() => {
+                    // compose message and open WhatsApp
+                    const phone = '94719278827'; // Sri Lanka +94, without leading 0
+                    const name = vehicle.name || '';
+                    const brand = vehicle.brand || '';
+                    const price = vehicle.price || '';
+                    const seats = vehicle.seats ?? '';
+                    const transmission = vehicle.transmission || '';
+                    const date = rentalDate || 'Not specified';
+                    const time = rentalTime || 'Not specified';
+                    const msg = `Hello, I would like to rent the following vehicle:\n\nVehicle: ${name} (${brand})\nPrice: ${price}\nSeats: ${seats}\nTransmission: ${transmission}\n\nPreferred Pickup Date: ${date}\nPreferred Pickup Time: ${time}\n\nPlease let me know the availability and next steps. Thank you.`;
+                    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                    try {
+                      window.open(url, '_blank');
+                    } catch (err) {
+                      window.location.href = url;
+                    }
+                  }}>Rent Now</Button>
+                </div>
+                
               </div>
             </div>
 

@@ -38,21 +38,21 @@ const HoverEffect: React.FC<HoverEffectProps> = ({ items, className = "" }) => {
 
   return (
     <div
-      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-8 ${className}`}
+      className={`grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-6 sm:py-8 ${className}`}
     >
       {items.map((item, idx) => (
         <div
           key={item.key || idx}
-          className={`relative group block h-full w-full transform transition-all duration-700 hover:scale-105 ${
+          className={`relative group block h-full w-full transform transition-all duration-700 touch-manipulation ${
             idx < visibleItems 
               ? 'opacity-100 translate-y-0 scale-100' 
               : 'opacity-0 translate-y-8 scale-95'
           }`}
-          style={{
-            transitionDelay: `${idx * 100}ms`
-          }}
+          style={{ transitionDelay: `${idx * 100}ms` }}
           onMouseEnter={() => setHoveredIndex(idx)}
           onMouseLeave={() => setHoveredIndex(null)}
+          onClick={() => setHoveredIndex((prev) => (prev === idx ? null : idx))}
+          onTouchStart={() => setHoveredIndex(idx)}
         >
           <div
             className={`absolute inset-0 bg-gradient-to-br from-gray-800/20 to-gray-200/30 rounded-3xl transition-all duration-700 transform ${
@@ -215,22 +215,22 @@ export default function EnhancedCarCards() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
-        <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-500 bg-clip-text text-transparent">
+        <div className="text-center mb-10 sm:mb-12 animate-fade-in">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-500 bg-clip-text text-transparent">
             Premium Car Rentals
           </h1>
-          <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-500 max-w-2xl mx-auto">
             Choose from our fleet of well-maintained vehicles for your perfect journey
           </p>
         </div>
 
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6 sm:mb-8">
           <div className="bg-gray-200 rounded-2xl p-2 shadow-lg border border-gray-200/50">
             {["all", "available", "unavailable"].map((filterType) => (
               <button
                 key={filterType}
                 onClick={() => handleFilterChange(filterType)}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 mr-2 last:mr-0  transform hover:scale-105 ${
+                className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-semibold transition-all duration-300 mr-2 last:mr-0  transform hover:scale-105 ${
                   filter === filterType
                     ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white shadow-lg scale-105"
                     : "text-gray-600 hover:text-white hover:bg-gray-600"
@@ -263,11 +263,11 @@ export default function EnhancedCarCards() {
                   <Link href={`/vehicles/${vehicleId}`} className="block w-full h-full">
                     <Card available={car.available} className="group">
                       <CardHeader>
-                        <div className="relative w-full h-48 mb-2 overflow-hidden rounded-2xl">
+                        <div className="relative w-full h-40 sm:h-44 md:h-48 mb-2 overflow-hidden rounded-2xl">
                           <img
                             src={car.image}
                             alt={car.name}
-                            className="w-full h-full object-cover transition-all duration-800 scale-60 group-hover:scale-80"
+                            className="w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-105 group-focus:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                           <div
@@ -278,16 +278,16 @@ export default function EnhancedCarCards() {
                             {car.available ? "Available" : "Not Available"}
                           </div>
                         </div>
-                        <CardTitle><div className="text-center tracking-wider">{car.name}</div></CardTitle>
+                        <CardTitle><div className="text-center tracking-wider text-base sm:text-lg md:text-xl">{car.name}</div></CardTitle>
                       </CardHeader>
 
                       <CardContent>
-                        <div className="space-y-2 text-gray-800 flex flex-row items-center gap-2 justify-around">
+                        <div className="space-y-2 text-gray-800 flex flex-col sm:flex-row items-center gap-2 justify-around text-sm sm:text-base">
                           <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
                           <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
                           <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
                         </div>
-                        <div className="text-black font-semibold text-lg text-center transform group-hover:scale-110 transition-transform duration-300">{car.price}</div>
+                        <div className="text-black font-semibold text-base sm:text-lg text-center transform group-hover:scale-110 transition-transform duration-300 mt-2">{car.price}</div>
                       </CardContent>
                     </Card>
                   </Link>

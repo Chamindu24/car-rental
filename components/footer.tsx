@@ -143,10 +143,22 @@ export default function Footer() {
               <Link
                 href="https://g.co/kgs/rUDYV6f"
                 target="_blank"
-                className="inline-flex items-center gap-2 mt-4 text-yellow-200 hover:text-yellow-400 transition-colors duration-300 text-sm font-medium"
+                className="block mt-4 text-yellow-200 hover:text-yellow-400 transition-colors duration-300 text-sm font-medium"
               >
-                <MapPin className="w-4 h-4" />
-                View on Google Maps
+                <span className="inline-flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  View on Google Maps
+                </span>
+              </Link>
+
+              <Link
+                href="/SignUp"
+                className="block mt-2 text-yellow-200 hover:text-yellow-400 transition-colors duration-300 text-sm font-medium"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Admin Login
+                </span>
               </Link>
             </div>
 
