@@ -17,7 +17,8 @@ type Vehicle = {
   seats: number;
   hasAC: boolean;
   price: string;
-  image: string;
+  images: string[];
+  mainImage: string;
   available: boolean;
   type: 'economy' | 'comfort' | 'luxury';
   fuelType: 'petrol' | 'diesel' | 'hybrid' | 'electric';
@@ -47,7 +48,9 @@ export default function VehiclesPage() {
         seats: v.seats,
         hasAC: v.hasAC,
         price: v.price,
-        image: v.image,
+        // Normalize images: prefer `mainImage`, then `image`, then first of `images`
+        mainImage: v.mainImage ?? v.image ?? (Array.isArray(v.images) && v.images.length ? v.images[0] : undefined) ?? '/placeholder.png',
+        images: Array.isArray(v.images) ? v.images : (v.image ? [v.image] : []),
         available: v.available,
         type: v.type,
         fuelType: v.fuelType,
@@ -232,7 +235,7 @@ export default function VehiclesPage() {
                 <Card className="hover:shadow-2xl transition-shadow group h-full flex flex-col">
                   <CardHeader className="relative p-0 overflow-hidden rounded-t-lg">
                     <img 
-                      src={vehicle.image} 
+                      src={vehicle.mainImage } 
                       alt={vehicle.name} 
                       className="w-full h-48 object-cover"
                     />
@@ -300,8 +303,8 @@ export default function VehiclesPage() {
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-3xl bg-white rounded-lg overflow-hidden shadow-lg">
           <button className="absolute top-3 right-3 z-30 bg-white rounded-full p-2 shadow" onClick={closeDetails}>Close</button>
           <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="h-80 md:h-auto md:min-h-[300px]">
-              <img src={selected!.image} className="w-full h-full object-cover" />
+              <div className="h-80 md:h-auto md:min-h-[300px]">
+              <img src={selected!.mainImage } className="w-full h-full object-cover" />
             </div>
             <div className="p-6">
               <h3 className="text-2xl font-bold mb-2">{selected!.name}</h3>

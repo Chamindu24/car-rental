@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from 'next/link';
 import type { Vehicle } from "@/types/vehicle";
 
 // Enhanced HoverEffect component with black & ash styling
@@ -160,8 +161,19 @@ export default function EnhancedCarCards() {
         setFetchLoading(true);
         const res = await fetch('/api/vehicles', { signal: controller.signal });
         if (!res.ok) throw new Error(`Failed to fetch vehicles: ${res.status}`);
-        const data: Vehicle[] = await res.json();
-        if (mounted) setVehicles(data);
+        const data: any[] = await res.json();
+
+        // Normalize image fields so the component can always render an image.
+        const normalized: Vehicle[] = (data || []).map((v: any) => ({
+          ...v,
+          image:
+            v.image ??
+            v.mainImage ??
+            (Array.isArray(v.images) && v.images.length ? v.images[0] : undefined) ??
+            'https://via.placeholder.com/600x400?text=No+Image',
+        }));
+
+        if (mounted) setVehicles(normalized);
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         console.error('Error fetching vehicles', err);
@@ -243,41 +255,45 @@ export default function EnhancedCarCards() {
           </div>
         ) : (
           <HoverEffect
-            items={filteredCars.map((car, idx) => ({
-              key: String((car as any)._id ?? (car as any).id ?? idx),
-              content: (
-                <Card available={car.available} className="group">
-                  <CardHeader>
-                      <div className="relative w-full h-48 mb-2 overflow-hidden rounded-2xl">
-                      <img
-                        src={car.image}
-                        alt={car.name}
-                        className="w-full h-full object-cover transition-all duration-800 scale-60 group-hover:scale-80"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div
-                        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 transform group-hover:scale-110 ${
-                        car.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                        }`}
-                      >
-                        {car.available ? "Available" : "Not Available"}
-                      </div>
-                      </div>
-                    <CardTitle><div className="text-center tracking-wider">{car.name}</div></CardTitle>
-                    
-                  </CardHeader>
+            items={filteredCars.map((car, idx) => {
+              const vehicleId = String((car as any)._id ?? (car as any).id ?? idx);
+              return {
+                key: vehicleId,
+                content: (
+                  <Link href={`/vehicles/${vehicleId}`} className="block w-full h-full">
+                    <Card available={car.available} className="group">
+                      <CardHeader>
+                        <div className="relative w-full h-48 mb-2 overflow-hidden rounded-2xl">
+                          <img
+                            src={car.image}
+                            alt={car.name}
+                            className="w-full h-full object-cover transition-all duration-800 scale-60 group-hover:scale-80"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          <div
+                            className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 transform group-hover:scale-110 ${
+                              car.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                            }`}
+                          >
+                            {car.available ? "Available" : "Not Available"}
+                          </div>
+                        </div>
+                        <CardTitle><div className="text-center tracking-wider">{car.name}</div></CardTitle>
+                      </CardHeader>
 
-                  <CardContent>
-                    <div className="space-y-2 text-gray-800 flex flex-row items-center gap-2 justify-around">
-                      <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
-                      <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
-                      <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
-                    </div>
-                    <div className="text-black font-semibold text-lg text-center transform group-hover:scale-110 transition-transform duration-300">{car.price}</div>
-                  </CardContent>
-                </Card>
-              ),
-            }))}
+                      <CardContent>
+                        <div className="space-y-2 text-gray-800 flex flex-row items-center gap-2 justify-around">
+                          <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
+                          <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
+                          <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
+                        </div>
+                        <div className="text-black font-semibold text-lg text-center transform group-hover:scale-110 transition-transform duration-300">{car.price}</div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ),
+              };
+            })}
           />
         )}
 

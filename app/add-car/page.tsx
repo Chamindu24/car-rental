@@ -7,8 +7,9 @@ import { Switch } from "@/components/ui/switch";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import { UploadCloud, X, Loader2 } from "lucide-react";
+import { UploadCloud, X, Loader2, Star, StarOff } from "lucide-react"; // Added Star icons
 
+// Updated Vehicle type to support multiple images and a mainImage field
 type Vehicle = {
   id?: string;
   name: string;
@@ -16,7 +17,8 @@ type Vehicle = {
   seats: number;
   hasAC: boolean;
   price: string;
-  image: string;
+  images: string[]; // Changed from 'image' to 'images' (array)
+  mainImage: string; // New field to store the URL of the main image
   available: boolean;
   type: 'economy' | 'comfort' | 'luxury';
   fuelType: 'petrol' | 'diesel' | 'hybrid' | 'electric';
@@ -36,13 +38,13 @@ export default function AddCarPage() {
     seats: 4,
     hasAC: false,
     price: '',
-    image: '',
+    images: [], // Initialize as an empty array
+    mainImage: '', // Initialize mainImage
     available: true,
     type: 'economy',
     fuelType: 'petrol',
     transmission: 'manual'
   });
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,20 +57,20 @@ export default function AddCarPage() {
             throw new Error('Failed to fetch vehicle');
           }
           const vehicle: Vehicle = await response.json();
-          
+
           setFormData({
             name: vehicle.name,
             brand: vehicle.brand,
             seats: vehicle.seats,
             hasAC: vehicle.hasAC,
             price: vehicle.price.replace('Rs. ', '').replace('/day', ''),
-            image: vehicle.image,
+            images: vehicle.images || [], // Ensure images is an array
+            mainImage: vehicle.mainImage || (vehicle.images.length > 0 ? vehicle.images[0] : ''), // Set main image
             available: vehicle.available,
             type: vehicle.type,
             fuelType: vehicle.fuelType,
             transmission: vehicle.transmission
           });
-          setPreviewImage(vehicle.image);
         } catch (error) {
           toast.error('Failed to load vehicle data');
           console.error(error);
@@ -94,8 +96,7 @@ export default function AddCarPage() {
     }));
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageUpload = async (file: File) => {
     if (!file) return;
 
     // Check if file is an image
@@ -110,22 +111,14 @@ export default function AddCarPage() {
       return;
     }
 
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPreviewImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Upload to backend
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', file);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData,
+        body: formDataToSend,
       });
 
       if (!response.ok) {
@@ -133,29 +126,78 @@ export default function AddCarPage() {
       }
 
       const { url } = await response.json();
-      setFormData(prev => ({
-        ...prev,
-        image: url,
-      }));
+      setFormData(prev => {
+        const newImages = [...prev.images, url];
+        // If it's the first image, make it the main image automatically
+        const newMainImage = prev.mainImage || url; 
+        return {
+          ...prev,
+          images: newImages,
+          mainImage: newMainImage,
+        };
+      });
       toast.success('Image uploaded successfully');
     } catch (error) {
       toast.error('Failed to upload image');
       console.error(error);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      setPreviewImage(null);
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Clear the file input
+      }
     }
   };
 
-  const removeImage = () => {
-    setPreviewImage(null);
-    setFormData(prev => ({ ...prev, image: '' }));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        handleImageUpload(files[i]);
+      }
     }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (isUploading || isSubmitting) return;
+
+    const files = e.dataTransfer.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        handleImageUpload(files[i]);
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const removeImage = (imageUrlToRemove: string) => {
+    setFormData(prev => {
+      const filteredImages = prev.images.filter(img => img !== imageUrlToRemove);
+      let newMainImage = prev.mainImage;
+
+      // If the removed image was the main image, set a new main image or clear it
+      if (newMainImage === imageUrlToRemove) {
+        newMainImage = filteredImages.length > 0 ? filteredImages[0] : '';
+      }
+
+      return {
+        ...prev,
+        images: filteredImages,
+        mainImage: newMainImage,
+      };
+    });
+    toast.info('Image removed');
+  };
+
+  const setMainImage = (imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      mainImage: imageUrl,
+    }));
+    toast.success('Main image updated');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -169,14 +211,21 @@ export default function AddCarPage() {
       return;
     }
 
-    if (!formData.image) {
-      toast.error('Please upload an image of the vehicle');
+    if (formData.images.length === 0) {
+      toast.error('Please upload at least one image of the vehicle');
       setIsSubmitting(false);
       return;
     }
+    
+    if (!formData.mainImage && formData.images.length > 0) {
+        toast.error('Please select a main image for the vehicle.');
+        setIsSubmitting(false);
+        return;
+    }
+
 
     try {
-      // Format price for display
+      // Format price for display (if your API expects it this way)
       const formattedData = {
         ...formData,
         price: `Rs. ${formData.price}/day`
@@ -209,25 +258,26 @@ export default function AddCarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">
-            {isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 md:p-8">
+      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 border border-gray-100">
+        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+          <h1 className="text-3xl font-extrabold text-gray-800">
+            {isEditMode ? 'Edit Vehicle Details' : 'Add New Vehicle'}
           </h1>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => router.push('/vehicles')}
             disabled={isSubmitting}
+            className="hover:bg-gray-50 transition-colors duration-200"
           >
             Back to Vehicles
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Vehicle Name*</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700">Vehicle Name<span className="text-red-500">*</span></Label>
               <Input
                 id="name"
                 name="name"
@@ -236,11 +286,12 @@ export default function AddCarPage() {
                 placeholder="e.g. Suzuki Alto"
                 required
                 disabled={isSubmitting}
+                className="focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="brand">Brand*</Label>
+              <Label htmlFor="brand" className="text-sm font-medium text-gray-700">Brand<span className="text-red-500">*</span></Label>
               <Input
                 id="brand"
                 name="brand"
@@ -249,11 +300,12 @@ export default function AddCarPage() {
                 placeholder="e.g. Suzuki"
                 required
                 disabled={isSubmitting}
+                className="focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="seats">Number of Seats</Label>
+              <Label htmlFor="seats" className="text-sm font-medium text-gray-700">Number of Seats</Label>
               <Input
                 id="seats"
                 name="seats"
@@ -263,11 +315,12 @@ export default function AddCarPage() {
                 value={formData.seats}
                 onChange={handleChange}
                 disabled={isSubmitting}
+                className="focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price per Day (Rs.)*</Label>
+              <Label htmlFor="price" className="text-sm font-medium text-gray-700">Price per Day (Rs.)<span className="text-red-500">*</span></Label>
               <Input
                 id="price"
                 name="price"
@@ -277,17 +330,18 @@ export default function AddCarPage() {
                 placeholder="e.g. 3500"
                 required
                 disabled={isSubmitting}
+                className="focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Vehicle Type</Label>
+              <Label htmlFor="type" className="text-sm font-medium text-gray-700">Vehicle Type</Label>
               <select
                 id="type"
                 name="type"
                 value={formData.type}
                 onChange={handleSelectChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isSubmitting}
               >
                 <option value="economy">Economy</option>
@@ -297,13 +351,13 @@ export default function AddCarPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fuelType">Fuel Type</Label>
+              <Label htmlFor="fuelType" className="text-sm font-medium text-gray-700">Fuel Type</Label>
               <select
                 id="fuelType"
                 name="fuelType"
                 value={formData.fuelType}
                 onChange={handleSelectChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isSubmitting}
               >
                 <option value="petrol">Petrol</option>
@@ -314,13 +368,13 @@ export default function AddCarPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="transmission">Transmission</Label>
+              <Label htmlFor="transmission" className="text-sm font-medium text-gray-700">Transmission</Label>
               <select
                 id="transmission"
                 name="transmission"
                 value={formData.transmission}
                 onChange={handleSelectChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isSubmitting}
               >
                 <option value="manual">Manual</option>
@@ -330,74 +384,101 @@ export default function AddCarPage() {
           </div>
 
           {/* Image Upload Section */}
-          <div className="space-y-2">
-            <Label>Vehicle Image*</Label>
-            <div className="flex items-center justify-center w-full">
-              <label
-                htmlFor="image-upload"
-                className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer 
-                  ${previewImage ? 'border-transparent' : 'border-gray-300 hover:border-gray-400'}
-                  ${isUploading || isSubmitting ? 'opacity-50' : ''}`}
-              >
-                {previewImage ? (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={previewImage}
-                      alt="Vehicle preview"
-                      className="w-full h-full object-contain rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeImage();
-                      }}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                      disabled={isUploading || isSubmitting}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {isUploading ? (
-                      <Loader2 className="w-8 h-8 mb-3 text-gray-400 animate-spin" />
-                    ) : (
-                      <UploadCloud className="w-8 h-8 mb-3 text-gray-400" />
-                    )}
-                    <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      PNG, JPG (MAX. 5MB)
-                    </p>
-                  </div>
-                )}
-                <input
-                  id="image-upload"
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  disabled={isUploading || isSubmitting}
-                />
-              </label>
+          <div className="space-y-4 pt-4">
+            <Label className="text-sm font-medium text-gray-700">Vehicle Images<span className="text-red-500">*</span> (Max 4)</Label>
+            <div
+              className={`flex flex-col items-center justify-center w-full min-h-[150px] border-2 border-dashed rounded-lg p-4 transition-colors duration-200
+                ${isUploading ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-emerald-500 hover:bg-gray-50'}
+                ${formData.images.length >= 4 ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}
+                ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onClick={() => !isUploading && !isSubmitting && formData.images.length < 4 && fileInputRef.current?.click()}
+            >
+              <input
+                id="image-upload"
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileInputChange}
+                multiple // Allow multiple file selection
+                disabled={isUploading || isSubmitting || formData.images.length >= 4}
+              />
+              {isUploading ? (
+                <div className="flex flex-col items-center">
+                  <Loader2 className="w-8 h-8 mb-3 text-emerald-500 animate-spin" />
+                  <p className="text-sm text-emerald-600">Uploading...</p>
+                </div>
+              ) : formData.images.length === 0 ? (
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500">
+                  <UploadCloud className="w-8 h-8 mb-3" />
+                  <p className="mb-2 text-sm">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs">PNG, JPG (MAX. 5MB per image)</p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Drag and drop more images, or click to select.</p>
+              )}
             </div>
+
+            {/* Image Previews and Main Image Selection */}
+            {formData.images.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {formData.images.map((imgUrl, index) => (
+                  <div key={index} className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-200 shadow-sm group">
+                    <img
+                      src={imgUrl}
+                      alt={`Vehicle image ${index + 1}`}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeImage(imgUrl)}
+                        className="absolute top-2 right-2 rounded-full h-7 w-7 text-white bg-red-600 hover:bg-red-700 z-10"
+                        disabled={isSubmitting}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setMainImage(imgUrl)}
+                        className={`absolute top-2 left-2 rounded-full h-7 w-7 z-10 
+                          ${formData.mainImage === imgUrl ? 'text-yellow-400 bg-yellow-400/20 hover:bg-yellow-400/30' : 'text-gray-300 hover:text-yellow-300 hover:bg-gray-800/20'}`}
+                        disabled={isSubmitting}
+                        title={formData.mainImage === imgUrl ? "Main Image" : "Set as Main Image"}
+                      >
+                        {formData.mainImage === imgUrl ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {formData.mainImage === imgUrl && (
+                      <span className="absolute bottom-1 left-1 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full z-10">Main</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center space-x-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-8 pt-4 border-t border-gray-200 mt-6">
             <div className="flex items-center space-x-2">
               <Switch
                 id="hasAC"
                 name="hasAC"
                 checked={formData.hasAC}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setFormData(prev => ({ ...prev, hasAC: checked }))
                 }
                 disabled={isSubmitting}
+                className="data-[state=checked]:bg-emerald-500"
               />
-              <Label htmlFor="hasAC">Air Conditioning</Label>
+              <Label htmlFor="hasAC" className="text-gray-700">Air Conditioning</Label>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -405,25 +486,26 @@ export default function AddCarPage() {
                 id="available"
                 name="available"
                 checked={formData.available}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setFormData(prev => ({ ...prev, available: checked }))
                 }
                 disabled={isSubmitting}
+                className="data-[state=checked]:bg-emerald-500"
               />
-              <Label htmlFor="available">Available for Rent</Label>
+              <Label htmlFor="available" className="text-gray-700">Available for Rent</Label>
             </div>
           </div>
 
-          <div className="pt-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isUploading || isSubmitting}
+          <div className="pt-6">
+            <Button
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg font-semibold rounded-lg shadow-md transition-colors duration-200"
+              disabled={isUploading || isSubmitting || formData.images.length === 0 || !formData.mainImage}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditMode ? 'Updating...' : 'Adding...'}
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  {isEditMode ? 'Updating Vehicle...' : 'Adding Vehicle...'}
                 </>
               ) : isEditMode ? 'Update Vehicle' : 'Add Vehicle'}
             </Button>

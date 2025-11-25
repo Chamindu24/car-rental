@@ -52,9 +52,10 @@ export default function Customers() {
         backgroundAttachment: 'fixed', // This is the key for the 'sticky' effect
         backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fallback and slight overlay for readability
       }}
+
     >
-      <section className="w-full px-4 py-4 md:py-12 relative bg-white/3 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto space-y-2 md:space-y-8">
+      <section className="w-full min-h-[94vh] px-4 py-4 md:py-12 relative bg-white/3 backdrop-blur-xs flex items-center">
+        <div className="max-w-7xl mx-auto space-y-2 md:space-y-8 ">
           <h2 className="text-3xl md:text-6xl text-neutral-50 font-bold font-mono text-center tracking-widest">
             Our Customers
           </h2>
