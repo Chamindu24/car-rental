@@ -46,7 +46,7 @@ export default function Customers() {
   return (
 
     <div
-      className="bg-cover bg-center md:bg-fixed"
+      className="bg-cover bg-center bg-fixed"
       style={{
         backgroundImage: "url('/stick1.jpg')",
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
