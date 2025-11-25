@@ -21,7 +21,7 @@ const CRCabLogo = () => {
       className="relative z-20 mr-4 flex items-center space-x-3 px-3 py-2 text-lg font-normal text-black"
     >
       <Image
-        src="/vehicle.png"
+        src="/logo3.png"
         alt="CR Cab Service Logo"
         width={40}
         height={40}
