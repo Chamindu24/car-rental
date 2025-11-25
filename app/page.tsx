@@ -6,7 +6,7 @@ import { ImagesSliderDemo } from "@/components/contact";
 import Customers from "@/components/customers";
 import Footer from "@/components/footer";
 import HeroSection from "@/components/hero";
-import Navbar from "@/components/navbar";
+import CRCabNavbar from "@/components/navbar";
 import { ScrollBasedVelocityDemo } from "@/components/ScrollBasedVelocity";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import LoadingScreen from "./loading";
@@ -28,7 +28,7 @@ export default function Home() {
 
   return (
     <main>
-      <Navbar />
+      <CRCabNavbar />
       <HeroSection />
       <ScrollBasedVelocityDemo />
       <CarCards />

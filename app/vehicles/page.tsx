@@ -7,10 +7,10 @@ import { toast } from "sonner";
 import { Check, X, Pencil, Plus, Home, Car, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Vehicle = {
-  id: number;
+  id?: string;
   name: string;
   brand: string;
   seats: number;
@@ -22,64 +22,46 @@ type Vehicle = {
   fuelType: 'petrol' | 'diesel' | 'hybrid' | 'electric';
   transmission: 'manual' | 'automatic';
 };
-
-const vehicles: Vehicle[] = [
-  {
-    id: 1,
-    name: "Suzuki Alto",
-    brand: "Suzuki",
-    seats: 4,
-    hasAC: false,
-    price: "Rs. 3,500/day",
-    image: "/suzuki-alto.png",
-    available: true,
-    type: 'economy',
-    fuelType: 'petrol',
-    transmission: 'manual'
-  },
-  {
-    id: 2,
-    name: "Toyota Prius",
-    brand: "Toyota",
-    seats: 5,
-    hasAC: true,
-    price: "Rs. 6,000/day",
-    image: "/toyota-prius.png",
-    available: true,
-    type: 'comfort',
-    fuelType: 'hybrid',
-    transmission: 'automatic'
-  },
-  {
-    id: 3,
-    name: "Honda Vezel",
-    brand: "Honda",
-    seats: 5,
-    hasAC: true,
-    price: "Rs. 8,000/day",
-    image: "/honda-vezel.png",
-    available: false,
-    type: 'luxury',
-    fuelType: 'hybrid',
-    transmission: 'automatic'
-  },
-  {
-    id: 4,
-    name: "Nissan Sunny",
-    brand: "Nissan",
-    seats: 5,
-    hasAC: true,
-    price: "Rs. 5,500/day",
-    image: "/nissan-sunny.png",
-    available: true,
-    type: 'comfort',
-    fuelType: 'petrol',
-    transmission: 'automatic'
-  },
-];
+// Vehicles data will be fetched inside the client component below
 
 export default function VehiclesPage() {
   const router = useRouter();
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchVehicles = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/vehicles');
+      if (!res.ok) throw new Error('Failed to fetch vehicles');
+      const data = await res.json();
+      const mapped: Vehicle[] = (data || []).map((v: any) => ({
+        id: v._id ? String(v._id) : v.id ? String(v.id) : undefined,
+        name: v.name,
+        brand: v.brand,
+        seats: v.seats,
+        hasAC: v.hasAC,
+        price: v.price,
+        image: v.image,
+        available: v.available,
+        type: v.type,
+        fuelType: v.fuelType,
+        transmission: v.transmission,
+      }));
+      setVehicles(mapped);
+    } catch (err: any) {
+      console.error('Fetch vehicles error:', err);
+      setError(err?.message || 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchVehicles();
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     type: '',
@@ -88,7 +70,7 @@ export default function VehiclesPage() {
     hasAC: null as boolean | null,
   });
 
-  const handleRent = (vehicleId: number) => {
+  const handleRent = (vehicleId?: string) => {
     const vehicle = filteredVehicles.find(v => v.id === vehicleId);
     if (vehicle) {
       if (vehicle.available) {
@@ -104,7 +86,8 @@ export default function VehiclesPage() {
     }
   };
 
-  const handleEdit = (vehicleId: number) => {
+  const handleEdit = (vehicleId?: string) => {
+    if (!vehicleId) return;
     router.push(`/add-car?id=${vehicleId}`);
   };
 

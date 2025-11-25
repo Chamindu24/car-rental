@@ -44,9 +44,9 @@ export default function Customers() {
   ];
 
   return (
-    <AuroraBackground>
-    <section className="w-full px-4 py-12 md:py-24 bg-gradient-to-br from-white to-white">
-      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
+    
+    <section className="w-full px-4 py-4 md:py-12 bg-gradient-to-br from-white to-white">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-8">
         <h2 className="text-2xl md:text-5xl font-bold text-center">
           Our Customers
         </h2>
@@ -129,6 +129,6 @@ export default function Customers() {
         </div>
       </div>
     </section>
-    </AuroraBackground>
+   
   );
 }
