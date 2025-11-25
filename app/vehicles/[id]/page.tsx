@@ -5,11 +5,11 @@ import VehicleDetail from '@/components/VehicleDetail';
 import type { Vehicle } from '@/types/vehicle';
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function VehiclePage({ params }: Props) {
-  const { id } = params;
+  const { id } = await params;
 
   let vehicleDoc: any = null;
   try {
