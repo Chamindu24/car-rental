@@ -8,6 +8,7 @@ import { Check, X, Pencil, Plus, Home, Car, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 
 type Vehicle = {
   id?: string;
@@ -29,6 +30,8 @@ export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Vehicle | null>(null);
+  const [sortBy, setSortBy] = useState<'newest'|'priceAsc'|'priceDesc'>('newest');
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -91,7 +94,22 @@ export default function VehiclesPage() {
     router.push(`/add-car?id=${vehicleId}`);
   };
 
-  const filteredVehicles = vehicles.filter(vehicle => {
+  const openDetails = (v: Vehicle) => setSelected(v);
+  const closeDetails = () => setSelected(null);
+
+  const parsePriceValue = (priceStr: string) => {
+    // attempt to extract numeric value from strings like "Rs. 3,500/day"
+    const num = priceStr.replace(/[^0-9.]/g, '');
+    return Number(num) || 0;
+  };
+
+  const sortedVehicles = [...vehicles].sort((a,b) => {
+    if (sortBy === 'priceAsc') return parsePriceValue(a.price) - parsePriceValue(b.price);
+    if (sortBy === 'priceDesc') return parsePriceValue(b.price) - parsePriceValue(a.price);
+    return 0;
+  });
+
+  const filteredVehicles = sortedVehicles.filter(vehicle => {
     // Search term filter
     const matchesSearch = 
       vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,6 +141,7 @@ export default function VehiclesPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 p-4 md:p-8">
       <div className="max-w-full mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -141,31 +160,6 @@ export default function VehiclesPage() {
               Add Vehicle
             </Button>
           </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          <div className="relative">
-            <Input
-              placeholder="Search vehicles by name or brand..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <select
-              value={filters.type}
-              onChange={(e) => setFilters({...filters, type: e.target.value as any})}
-              className="px-3 py-2 text-sm border rounded-md"
-            >
-              <option value="">All Types</option>
-              <option value="economy">Economy</option>
-              <option value="comfort">Comfort</option>
-              <option value="luxury">Luxury</option>
-            </select>
 
             <select
               value={filters.fuelType}
@@ -202,10 +196,28 @@ export default function VehiclesPage() {
             <Button variant="outline" onClick={clearFilters} size="sm">
               Clear Filters
             </Button>
+            <div className="ml-2 flex items-center">
+              <label className="text-sm mr-2 text-gray-600">Sort:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-3 py-2 text-sm border rounded-md"
+              >
+                <option value="newest">Default</option>
+                <option value="priceAsc">Price: Low → High</option>
+                <option value="priceDesc">Price: High → Low</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {filteredVehicles.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({length:8}).map((_,i) => (
+              <div key={i} className="animate-pulse bg-white rounded-lg p-4 h-64 shadow-sm" />
+            ))}
+          </div>
+        ) : filteredVehicles.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium">No vehicles found</h3>
             <p className="text-gray-500 mt-2">Try adjusting your search or filters</p>
@@ -216,90 +228,94 @@ export default function VehiclesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVehicles.map((vehicle) => (
-              <Card key={vehicle.id} className="hover:shadow-xl transition-shadow group h-full flex flex-col">
-                <CardHeader className="relative p-0">
-                  <img 
-                    src={vehicle.image} 
-                    alt={vehicle.name} 
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <Badge variant={vehicle.available ? "default" : "destructive"} className="flex items-center">
-                      {vehicle.available ? (
-                        <>
-                          <Check className="w-3 h-3 mr-1" /> Available
-                        </>
-                      ) : (
-                        <>
-                          <X className="w-3 h-3 mr-1" /> Unavailable
-                        </>
-                      )}
-                    </Badge>
-                    <button 
-                      onClick={() => handleEdit(vehicle.id)}
-                      className="bg-blue-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-600"
-                    >
-                      <Pencil className="w-3 h-3" />
-                    </button>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-grow p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-semibold">{vehicle.name}</h3>
-                      <p className="text-gray-600 text-sm">{vehicle.brand}</p>
+              <motion.div key={vehicle.id} whileHover={{ y: -6 }} className="h-full">
+                <Card className="hover:shadow-2xl transition-shadow group h-full flex flex-col">
+                  <CardHeader className="relative p-0 overflow-hidden rounded-t-lg">
+                    <img 
+                      src={vehicle.image} 
+                      alt={vehicle.name} 
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      <Badge variant={vehicle.available ? "default" : "destructive"} className="flex items-center">
+                        {vehicle.available ? (
+                          <>
+                            <Check className="w-3 h-3 mr-1" /> Available
+                          </>
+                        ) : (
+                          <>
+                            <X className="w-3 h-3 mr-1" /> Unavailable
+                          </>
+                        )}
+                      </Badge>
                     </div>
-                    <p className="text-lg font-bold text-primary whitespace-nowrap">{vehicle.price}</p>
-                  </div>
+                    <div className="absolute left-3 bottom-3">
+                      <button onClick={() => openDetails(vehicle)} className="bg-white/90 px-3 py-1 rounded-full text-sm shadow">View</button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-grow p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-semibold">{vehicle.name}</h3>
+                        <p className="text-gray-600 text-sm">{vehicle.brand}</p>
+                      </div>
+                      <p className="text-lg font-bold text-primary whitespace-nowrap">{vehicle.price}</p>
+                    </div>
 
-                  <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex items-center">
-                      <span className="font-medium w-24">Seats:</span>
-                      <span>{vehicle.seats}</span>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="capitalize">{vehicle.type}</Badge>
+                      <Badge variant="outline" className="capitalize">{vehicle.fuelType}</Badge>
+                      <Badge variant="outline" className="capitalize">{vehicle.transmission}</Badge>
+                      <div className="ml-auto text-sm text-gray-500">Seats: {vehicle.seats}</div>
                     </div>
-                    <div className="flex items-center">
-                      <span className="font-medium w-24">AC:</span>
-                      {vehicle.hasAC ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <X className="w-4 h-4 text-red-500" />
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      <span className="font-medium w-24">Type:</span>
-                      <Badge variant="secondary" className="capitalize">
-                        {vehicle.type}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="font-medium w-24">Fuel:</span>
-                      <Badge variant="outline" className="capitalize">
-                        {vehicle.fuelType}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="font-medium w-24">Transmission:</span>
-                      <Badge variant="outline" className="capitalize">
-                        {vehicle.transmission}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0 flex gap-2">
-                  <Button 
-                    variant="outline"
-                    className="w-full" 
-                    onClick={() => handleEdit(vehicle.id)}
-                  >
-                    Edit
-                  </Button>
-                  
-                </CardFooter>
-              </Card>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0 flex gap-2">
+                    <Button 
+                      variant="default"
+                      className="w-full"
+                      onClick={() => handleRent(vehicle.id)}
+                    >
+                      Rent
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleEdit(vehicle.id)}
+                    >
+                      Edit
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
-    </div>
+    
+    {/* Details modal */}
+    {selected && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/60" onClick={closeDetails} />
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-3xl bg-white rounded-lg overflow-hidden shadow-lg">
+          <button className="absolute top-3 right-3 z-30 bg-white rounded-full p-2 shadow" onClick={closeDetails}>Close</button>
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="h-80 md:h-auto md:min-h-[300px]">
+              <img src={selected!.image} className="w-full h-full object-cover" />
+            </div>
+            <div className="p-6">
+              <h3 className="text-2xl font-bold mb-2">{selected!.name}</h3>
+              <p className="text-sm text-gray-600 mb-4">{selected!.brand}</p>
+              <p className="mb-4">{selected!.price} • {selected!.type} • {selected!.fuelType}</p>
+              <div className="flex gap-2">
+                <Button onClick={() => { handleRent(selected!.id); closeDetails(); }} variant="default">Rent</Button>
+                <Button onClick={() => { handleEdit(selected!.id); closeDetails(); }} variant="outline">Edit</Button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    )}
+    </>
   );
 }

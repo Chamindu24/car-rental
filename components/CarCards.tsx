@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import type { Vehicle } from "@/types/vehicle";
 
 // Enhanced HoverEffect component with black & ash styling
 type HoverEffectItem = {
@@ -141,80 +142,44 @@ const CardFooter: React.FC<CardFooterProps> = ({ children, className = "" }) => 
   <div className={`mt-6 ${className}`}>{children}</div>
 );
 
-const cars = [
-  {
-    id: 1,
-    name: "Toyota Prius",
-    brand: "Toyota",
-    image: "/axio.jpg",
-    seats: 5,
-    ac: true,
-    driver: true,
-    price: "Rs. 8,000/day",
-    available: true,
-  },
-  {
-    id: 2,
-    name: "Suzuki Alto",
-    brand: "Suzuki",
-    image: "/car (1).png",
-    seats: 4,
-    ac: false,
-    driver: false,
-    price: "Rs. 3,500/day",
-    available: true,
-  },
-  {
-    id: 3,
-    name: "Honda Grace",
-    brand: "Honda",
-    image: "/wagon.png",
-    seats: 5,
-    ac: true,
-    driver: true,
-    price: "Rs. 7,500/day",
-    available: false,
-  },
-  {
-    id: 4,
-    name: "Nissan Caravan",
-    brand: "Nissan",
-    image: "/Mini-van.jpg",
-    seats: 10,
-    ac: true,
-    driver: true,
-    price: "Rs. 15,000/day",
-    available: true,
-  },
-  {
-    id: 5,
-    name: "Toyota Axio",
-    brand: "Toyota",
-    image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=300&fit=crop",
-    seats: 5,
-    ac: true,
-    driver: false,
-    price: "Rs. 6,500/day",
-    available: true,
-  },
-  {
-    id: 6,
-    name: "Tuk Tuk",
-    brand: "Bajaj",
-    image: "/Mini-van.jpg",
-    seats: 3,
-    ac: false,
-    driver: true,
-    price: "Rs. 2,000/day",
-    available: true,
-  },
-];
+// Vehicles are fetched from the server. Static sample data removed.
 
 export default function EnhancedCarCards() {
   const [filter, setFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [fetchLoading, setFetchLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const filteredCars = cars.filter((car) => {
+  useEffect(() => {
+    let mounted = true;
+    const controller = new AbortController();
+
+    async function loadVehicles() {
+      try {
+        setFetchLoading(true);
+        const res = await fetch('/api/vehicles', { signal: controller.signal });
+        if (!res.ok) throw new Error(`Failed to fetch vehicles: ${res.status}`);
+        const data: Vehicle[] = await res.json();
+        if (mounted) setVehicles(data);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.error('Error fetching vehicles', err);
+        if (mounted) setFetchError('Failed to load vehicles');
+      } finally {
+        if (mounted) setFetchLoading(false);
+      }
+    }
+
+    loadVehicles();
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+  }, []);
+
+  const filteredCars = vehicles.filter((car: Vehicle) => {
     if (filter === "available") return car.available;
     if (filter === "unavailable") return !car.available;
     return true;
@@ -266,14 +231,20 @@ export default function EnhancedCarCards() {
           </div>
         </div>
 
-        {isLoading ? (
+        {fetchError && (
+          <div className="max-w-2xl mx-auto text-center text-red-600 mb-6">
+            {fetchError}
+          </div>
+        )}
+
+        {fetchLoading || isLoading ? (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
           </div>
         ) : (
           <HoverEffect
-            items={filteredCars.map((car) => ({
-              key: car.id.toString(),
+            items={filteredCars.map((car, idx) => ({
+              key: String((car as any)._id ?? (car as any).id ?? idx),
               content: (
                 <Card available={car.available} className="group">
                   <CardHeader>
@@ -300,7 +271,7 @@ export default function EnhancedCarCards() {
                     <div className="space-y-2 text-gray-800 flex flex-row items-center gap-2 justify-around">
                       <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
                       <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
-                      <div className="transform group-hover:scale-105 transition-transform duration-300">{car.ac ? "Air Conditioned" : "No AC"}</div>
+                      <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
                     </div>
                     <div className="text-black font-semibold text-lg text-center transform group-hover:scale-110 transition-transform duration-300">{car.price}</div>
                   </CardContent>
@@ -310,7 +281,7 @@ export default function EnhancedCarCards() {
           />
         )}
 
-        {!isLoading && filteredCars.length === 0 && (
+        {!fetchLoading && !isLoading && filteredCars.length === 0 && (
           <div className="text-center py-16 text-gray-700 animate-fade-in">
             <div className="text-6xl mb-4 animate-bounce">🚗</div>
             <h3 className="text-2xl font-bold mb-2">No cars found</h3>

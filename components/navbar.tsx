@@ -46,8 +46,8 @@ export default function CRCabNavbar() {
       link: "/about",
     },
     {
-      name: "Testimonials",
-      link: "/testimonials",
+      name: "Vehicles",
+      link: "/vehicles",
     },
     {
       name: "Contact",
