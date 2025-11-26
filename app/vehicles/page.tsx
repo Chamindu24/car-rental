@@ -11,6 +11,7 @@ import {
   Check,
   X,
   Pencil,
+  Trash,
   Plus,
   Home,
   Car,
@@ -283,6 +284,7 @@ export default function VehiclesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<Filters>({
     type: '',
@@ -356,6 +358,32 @@ export default function VehiclesPage() {
   const handleEditVehicle = (vehicleId?: string) => {
     if (!vehicleId) return;
     router.push(`/add-car?id=${vehicleId}`);
+  };
+
+  const handleDeleteVehicle = async (vehicleId?: string) => {
+    if (!vehicleId) return;
+    try {
+      const confirmed = typeof window !== 'undefined' ? window.confirm('Are you sure you want to delete this vehicle? This action cannot be undone.') : false;
+      if (!confirmed) return;
+
+      setDeletingId(vehicleId);
+      setLoading(true);
+
+      const res = await fetch(`/api/${vehicleId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err?.error || 'Failed to delete vehicle');
+      } else {
+        toast.success('Vehicle deleted');
+        await fetchVehicles();
+      }
+    } catch (err) {
+      console.error('Delete vehicle error:', err);
+      toast.error('Failed to delete vehicle');
+    } finally {
+      setDeletingId(null);
+      setLoading(false);
+    }
   };
 
   const openVehicleDetails = (vehicle: Vehicle) => setSelectedVehicle(vehicle);
@@ -481,9 +509,23 @@ export default function VehiclesPage() {
           <CardContent className="flex-1 px-8">
             <div className="flex justify-between items-start mx-3">
               <p className="text-gray-600 text-md font-medium">{vehicle.brand}</p>
-              <p className="text-xl font-bold ">{vehicle.price}
+              
+             
+                <div
+                  role="status"
+                  aria-label={`Price ${
+                    typeof vehicle.price === "number"
+                      ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(vehicle.price)
+                      : vehicle.price
+                            }`}
+                            className="inline-flex items-center px-4 py-1 rounded-full bg-gradient-to-r from-yellow-200 via-yellow-100 to-amber-200 text-black font-extrabold text-md sm:text-md shadow-lg ring-1 ring-amber-200 transform transition-all duration-300 group-hover:scale-105 "
+                          >
+                            {typeof vehicle.price === "number"
+                              ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(vehicle.price)
+                              : vehicle.price}
+                          </div>
                 
-              </p>
+              
             </div>
 
             {/* Feature Badges */}
@@ -534,6 +576,22 @@ export default function VehiclesPage() {
                 className="shrink-0 bg-amber-700/10 hover:bg-amber-700/20 border-amber-700 text-amber-800 hover:text-amber-900 transition-colors"
               >
                 <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteVehicle(vehicle.id);
+                }}
+                title="Delete Vehicle"
+                className="shrink-0 bg-red-600/10 hover:bg-red-600/20 border-red-600 text-red-700 hover:text-red-800 transition-colors"
+                disabled={deletingId === vehicle.id}
+              >
+                <Trash className="w-4 h-4" />
               </Button>
             )}
           </CardFooter>
@@ -704,7 +762,7 @@ export default function VehiclesPage() {
                           className="inline-block"
                         />
                       </span>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 ">
                         {filteredAndSortedVehicles.length === 1 ? "vehicle" : "vehicles"}
                       </span>
                     </span>

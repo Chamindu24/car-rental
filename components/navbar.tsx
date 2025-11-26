@@ -12,6 +12,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Chatbot from "@/components/Chatbot";
 
 // Custom Logo Component for CR Cab Service
 const CRCabLogo = () => {
@@ -59,10 +60,13 @@ export default function CRCabNavbar() {
       name: "Contact",
       link: "contact",
     },
+    { name: "Live Chat", link: "" },
+
   ];
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -76,6 +80,8 @@ export default function CRCabNavbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMobileMenuOpen]);
+
+  
 
   // Service items for mobile menu
   
@@ -95,6 +101,7 @@ export default function CRCabNavbar() {
 
   return (
     <div className="relative w-full">
+      <Chatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       <Navbar className="fixed top-0 ">
         {/* Desktop Navigation */}
         <NavBody className="py-2 mt-4  ">
@@ -102,12 +109,25 @@ export default function CRCabNavbar() {
           <div className="flex gap-8 text-base font-medium text-gray-600 dark:text-gray-300 mr-14">
             {navItems.map((item, idx) => {
               const commonClasses = "relative inline-block cursor-pointer px-2 py-0.5 text-gray-600 dark:text-gray-300 font-medium before:absolute before:bottom-0 before:left-0 before:h-[1px] before:w-0 before:bg-gray-700 dark:before:bg-gray-300 before:transition-all before:duration-300 hover:before:w-full transform transition-transform duration-300 hover:scale-105";
+              // Special-case chat-like items to open chatbot modal
+              const lower = item.name.toLowerCase();
+              if (lower.includes("ask") || lower.includes("chat")) {
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setIsChatOpen(true)}
+                    className={`${commonClasses}`}
+                  >
+                    {item.name}
+                  </button>
+                );
+              }
+
               return item.link.startsWith("/") ? (
                 <Link
                   key={idx}
                   href={item.link}
-                  // Ensuring it's a block element for transforms to apply correctly
-                  className={`${commonClasses}`} 
+                  className={`${commonClasses}`}
                 >
                   {item.name}
                 </Link>
@@ -115,7 +135,6 @@ export default function CRCabNavbar() {
                 <span
                   key={idx}
                   onClick={() => handleScroll(item.link)}
-                  // Ensuring it's a block element for transforms to apply correctly
                   className={`${commonClasses}`}
                 >
                   {item.name}
@@ -194,15 +213,18 @@ export default function CRCabNavbar() {
                 className="w-full mx-auto"
                 href="tel:0711250718"
               >
-                📞 Call Now
+               Call Now
               </NavbarButton>
+              
               <NavbarButton
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsChatOpen(true);
+                }}
                 variant="dark"
                 className="w-full mx-auto"
-                href="/book-now"
               >
-                🚗 Book Now
+                Live Chat
               </NavbarButton>
             </div>
             </div>

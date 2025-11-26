@@ -197,6 +197,11 @@ export default function EnhancedCarCards() {
     return true;
   });
 
+  // Only display a subset on this listing and show a 'Show more' button
+  const DISPLAY_LIMIT = 6;
+  const showMoreNeeded = filteredCars.length > DISPLAY_LIMIT;
+  const visibleCars = filteredCars.slice(0, DISPLAY_LIMIT);
+
   const handleFilterChange = (newFilter: string) => {
     if (newFilter !== filter) {
       setIsLoading(true);
@@ -214,7 +219,7 @@ export default function EnhancedCarCards() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gray-700/10 rounded-full blur-3xl animate-pulse" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
         <div className="text-center mb-10 sm:mb-12 animate-fade-in">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-500 bg-clip-text text-transparent">
             Premium Car Rentals
@@ -254,47 +259,80 @@ export default function EnhancedCarCards() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
           </div>
         ) : (
-          <HoverEffect
-            items={filteredCars.map((car, idx) => {
-              const vehicleId = String((car as any)._id ?? (car as any).id ?? idx);
-              return {
-                key: vehicleId,
-                content: (
-                  <Link href={`/vehicles/${vehicleId}`} className="block w-full h-full">
-                    <Card available={car.available} className="group">
-                      <CardHeader>
-                        <div className="relative w-full h-40 sm:h-44 md:h-48 mb-2 overflow-hidden rounded-2xl">
-                          <img
-                            src={car.image}
-                            alt={car.name}
-                            className="w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-105 group-focus:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <div
-                            className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 transform group-hover:scale-110 ${
-                              car.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                            }`}
-                          >
-                            {car.available ? "Available" : "Not Available"}
+          <>
+            <HoverEffect
+              items={visibleCars.map((car, idx) => {
+                const vehicleId = String((car as any)._id ?? (car as any).id ?? idx);
+                return {
+                  key: vehicleId,
+                  content: (
+                    <Link href={`/vehicles/${vehicleId}`} aria-label={`View ${car.name}`} className="block w-full h-full focus:outline-none">
+                      <Card available={car.available} className="group">
+                        <CardHeader>
+                          <div className="relative w-full h-36 sm:h-40 md:h-44 lg:h-48 mb-3 overflow-hidden rounded-2xl">
+                            <img
+                              src={car.image}
+                              alt={car.name}
+                              className="w-full h-full object-cover object-center transition-transform duration-700 transform group-hover:scale-105 group-focus:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div
+                              className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 transform group-hover:scale-110 ${
+                                car.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                              }`}
+                            >
+                              {car.available ? "Available" : "Not Available"}
+                            </div>
                           </div>
-                        </div>
-                        <CardTitle><div className="text-center tracking-wider text-base sm:text-lg md:text-xl">{car.name}</div></CardTitle>
-                      </CardHeader>
+                          <CardTitle><div className="text-center tracking-wider text-base sm:text-lg md:text-xl">{car.name}</div></CardTitle>
+                        </CardHeader>
 
-                      <CardContent>
-                        <div className="space-y-2 text-gray-800 flex flex-col sm:flex-row items-center gap-2 justify-around text-sm sm:text-base">
-                          <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
-                          <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
-                          <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
-                        </div>
-                        <div className="text-black font-semibold text-base sm:text-lg text-center transform group-hover:scale-110 transition-transform duration-300 mt-2">{car.price}</div>
-                      </CardContent>
-                    </Card>
+                        <CardContent>
+                          <div className="flex flex-row flex-wrap items-center px-12 sm:px-12 gap-2 justify-between text-sm sm:text-base text-gray-800">
+                            <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
+                            <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
+                            <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
+                          </div>
+                          <div className="flex justify-center mt-3">
+                            <div
+                              role="status"
+                              aria-label={`Price ${
+                                typeof car.price === "number"
+                                  ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(car.price)
+                                  : car.price
+                              }`}
+                              className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-yellow-200 via-yellow-100 to-amber-200 text-black font-extrabold text-lg sm:text-xl shadow-lg ring-1 ring-amber-200 transform transition-all duration-300 group-hover:scale-105 "
+                            >
+                              {typeof car.price === "number"
+                                ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(car.price)
+                                : car.price}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ),
+                };
+              })}
+            />
+
+            {showMoreNeeded && (
+                <div className="flex justify-center mt-6 px-4 sm:px-0">
+                <div className="w-xs  sm:max-w-xs md:max-w-xs lg:max-w-sm">
+                  <Link href="/vehicles" className="block w-full">
+                  <button
+                    type="button"
+                    aria-label="Show more vehicles"
+                    className="w-full inline-flex justify-center items-center px-4 py-3 bg-gray-800 text-white rounded-xl font-semibold shadow hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
+                  >
+                    <span className="hidden sm:inline">Show more vehicles</span>
+                    <span className="sm:hidden">Show more</span>
+                  </button>
                   </Link>
-                ),
-              };
-            })}
-          />
+                </div>
+                </div>
+            )}
+          </>
         )}
 
         {!fetchLoading && !isLoading && filteredCars.length === 0 && (

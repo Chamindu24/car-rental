@@ -56,20 +56,37 @@ export default function AddCarPage() {
           if (!response.ok) {
             throw new Error('Failed to fetch vehicle');
           }
-          const vehicle: Vehicle = await response.json();
+          const vehicleData: any = await response.json();
+
+          const imgs: string[] = Array.isArray(vehicleData.images)
+            ? vehicleData.images
+            : (vehicleData.image ? [vehicleData.image] : []);
+
+          const mainImg: string = vehicleData.mainImage || (imgs.length > 0 ? imgs[0] : '');
+
+          let priceValue = '';
+          if (vehicleData.price !== undefined && vehicleData.price !== null) {
+            if (typeof vehicleData.price === 'string') {
+              priceValue = vehicleData.price.replace('Rs. ', '').replace('/day', '').trim();
+            } else if (typeof vehicleData.price === 'number') {
+              priceValue = String(vehicleData.price);
+            } else {
+              priceValue = '';
+            }
+          }
 
           setFormData({
-            name: vehicle.name,
-            brand: vehicle.brand,
-            seats: vehicle.seats,
-            hasAC: vehicle.hasAC,
-            price: vehicle.price.replace('Rs. ', '').replace('/day', ''),
-            images: vehicle.images || [], // Ensure images is an array
-            mainImage: vehicle.mainImage || (vehicle.images.length > 0 ? vehicle.images[0] : ''), // Set main image
-            available: vehicle.available,
-            type: vehicle.type,
-            fuelType: vehicle.fuelType,
-            transmission: vehicle.transmission
+            name: vehicleData.name || '',
+            brand: vehicleData.brand || '',
+            seats: vehicleData.seats ?? 4,
+            hasAC: Boolean(vehicleData.hasAC),
+            price: priceValue,
+            images: imgs,
+            mainImage: mainImg,
+            available: vehicleData.available ?? true,
+            type: vehicleData.type || 'economy',
+            fuelType: vehicleData.fuelType || 'petrol',
+            transmission: vehicleData.transmission || 'manual'
           });
         } catch (error) {
           toast.error('Failed to load vehicle data');
