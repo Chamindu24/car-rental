@@ -29,7 +29,9 @@ const features = [
 
 const WhyChooseUs = () => {
   return (
-    <section className="py-16 bg-white dark:bg-neutral-900">
+    <section 
+    id="whychoooseus"
+    className="py-16 bg-white dark:bg-neutral-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
           Why Choose CR Cab Service?

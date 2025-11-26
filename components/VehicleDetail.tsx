@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Users, AirVent, Fuel, Wrench, Car, Tag, Calendar, Clock, DollarSign, Info } from 'lucide-react';
+import { Check, X, Users, AirVent, Fuel, Wrench, Car, Tag, Calendar, Clock, DollarSign, Info, ShieldCheck, Lock, CreditCard } from 'lucide-react';
 import type { Vehicle } from '@/types/vehicle';
 import { IconBrandWhatsapp } from '@tabler/icons-react';
 
@@ -43,9 +43,44 @@ export default function VehicleDetail({ vehicle }: Props) {
   // State for Rental Date/Time
   const [rentalDate, setRentalDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [rentalTime, setRentalTime] = useState<string>(() => new Date().toTimeString().slice(0, 5));
+  // Rental duration (days) + subtle price bump animation when changed
+  const [days, setDays] = useState<number>(1);
+  const [priceBump, setPriceBump] = useState<boolean>(false);
 
   const mainImage = images[selected] ?? vehicle.image ?? '/placeholder.png';
-  const priceDisplay = vehicle.price ? `${vehicle.price}` : 'P.O.A'; 
+  const rawPrice = vehicle.price;
+  const parsedPrice = (() => {
+      let n: number = NaN;
+
+      if (typeof rawPrice === "number") {
+        n = rawPrice;
+      } else if (typeof rawPrice === "string") {
+        const cleaned = rawPrice.replace(/[^0-9.]/g, "");
+        n = parseFloat(cleaned);
+      }
+
+      if (!Number.isFinite(n)) return NaN;
+
+      // FIX: convert thousands value to real value
+      if (n < 1000) return n * 10000;
+
+      return n;
+    })();
+  const isPriceNumeric = Number.isFinite(parsedPrice);
+  const priceNumber = isPriceNumeric ? parsedPrice : NaN;
+  const priceDisplay = isPriceNumeric
+    ? ((): string => {
+        const opts: Intl.NumberFormatOptions = Number.isInteger(priceNumber) ? { minimumFractionDigits: 0 } : { minimumFractionDigits: 2 };
+        return `Rs ${priceNumber.toLocaleString('en-LK', opts)}`;
+      })()
+    : (rawPrice ? String(rawPrice) : 'P.O.A');
+  const totalDisplay = isPriceNumeric
+    ? ((): string => {
+        const total = priceNumber * days;
+        const opts: Intl.NumberFormatOptions = Number.isInteger(total) ? { minimumFractionDigits: 0 } : { minimumFractionDigits: 2 };
+        return `Rs ${total.toLocaleString('en-LK', opts)}`;
+      })()
+    : (rawPrice ? `${String(rawPrice)} x ${days}` : 'P.O.A');
   const available = vehicle.available ?? true;
   
   const handleRentNow = () => {
@@ -58,7 +93,10 @@ export default function VehicleDetail({ vehicle }: Props) {
     const date = rentalDate || 'Not specified';
     const time = rentalTime || 'Not specified';
     
-    const msg = `Hello, I'm interested in renting the *${brand} ${name}*.\n\nKey Details:\n- Price: ${price}\n- Pickup Date/Time: ${date} at ${time}\n- Transmission: ${transmission}\n\nPlease let me know the full process to confirm the booking. Thank you.`;
+      const durationText = `${days} day${days > 1 ? 's' : ''}`;
+      const totalText = isPriceNumeric ? totalDisplay : (String(price) || 'Not specified');
+
+      const msg = `Hello, I'm interested in renting the *${brand} ${name}*.\n\nKey Details:\n- Price: ${price}\n- Duration: ${durationText}\n- Total: ${totalText}\n- Pickup Date/Time: ${date} at ${time}\n- Transmission: ${transmission}\n\nPlease let me know the full process to confirm the booking. Thank you.`;
     
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
@@ -90,6 +128,14 @@ export default function VehicleDetail({ vehicle }: Props) {
       }
     };
   }, []);
+
+  // Brief visual bump when price/total changes (days change)
+  useEffect(() => {
+    if (!vehicle.price) return;
+    setPriceBump(true);
+    const t = setTimeout(() => setPriceBump(false), 220);
+    return () => clearTimeout(t);
+  }, [days, vehicle.price]);
 
   // --- Vehicle Overview Specs (Small strip below image) ---
   const overviewSpecs = featureMap.slice(0, 4).map(feature => {
@@ -123,28 +169,34 @@ export default function VehicleDetail({ vehicle }: Props) {
         </div>
 
         {/* Sticky Header for Booking (Appears on scroll) */}
-        <div className={`fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${isHeaderSticky ? 'translate-y-0' : '-translate-y-full'}`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-            <div className="flex  items-center gap-6">
-              <h2 className="text-2xl font-bold tracking-widest">{vehicle.brand} {vehicle.name}</h2>
-              
+        <div className={`fixed top-0 left-0 right-0 hidden sm:flex z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${isHeaderSticky ? 'translate-y-0' : '-translate-y-full'}`}>
+          <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            {/* Left corner - brand / name */}
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg sm:text-2xl font-bold tracking-widest truncate">
+          {vehicle.brand} {vehicle.name}
+              </h2>
             </div>
-            <Button 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white transition duration-300"
-                onClick={handleRentNow}
-                disabled={!available}
-            >
-                <Calendar className="w-4 h-4 mr-2" /> Quick Reserve
-            </Button>
+
+            {/* Right corner - quick reserve button */}
+            <div className="flex items-center">
+              <Button
+          className="bg-emerald-600 hover:bg-emerald-700 text-white transition duration-300"
+          onClick={handleRentNow}
+          disabled={!available}
+              >
+          <Calendar className="w-4 h-4 mr-2" /> Quick Reserve
+              </Button>
+            </div>
           </div>
         </div>
         
 
         {/* --- Main Grid Layout --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-y-20 mt-8">
           
           {/* Main Content (Image & Descriptions) - Takes 8/12 columns on large screens */}
-          <div className="lg:col-span-8 space-y-10">
+          <div className="lg:col-span-8 space-y-10 lg:space-y-14">
             
             {/* Image Gallery */}
             <div className="rounded-2xl overflow-hidden shadow-2xl shadow-emerald-100 bg-gray-50">
@@ -152,7 +204,7 @@ export default function VehicleDetail({ vehicle }: Props) {
                 <img
                   src={mainImage}
                   alt={vehicle.name}
-                  className="w-full h-[580px] object-cover transition-transform duration-700 ease-in-out"
+                  className="w-full h-[320px] sm:h-[420px] lg:h-[580px] object-cover transition-transform duration-700 ease-in-out"
                 />
                 
                 {/* Image Overlay Badge */}
@@ -172,7 +224,7 @@ export default function VehicleDetail({ vehicle }: Props) {
                   <button
                     key={i}
                     onClick={() => setSelected(i)}
-                    className={`flex-shrink-0 w-28 h-20 rounded-xl overflow-hidden border-2 ${i === selected ? 'border-emerald-500 shadow-md' : 'border-gray-200'} transform transition-all duration-200 hover:opacity-80`}
+                    className={`flex-shrink-0 w-20 sm:w-28 h-16 sm:h-20 rounded-xl overflow-hidden border-2 ${i === selected ? 'border-emerald-500 shadow-md' : 'border-gray-200'} transform transition-all duration-200 hover:opacity-80`}
                     aria-label={`Show image ${i + 1}`}
                   >
                     <img src={src || '/placeholder.png'} alt={`${vehicle.name} view ${i + 1}`} className="w-full h-full object-cover" />
@@ -182,8 +234,8 @@ export default function VehicleDetail({ vehicle }: Props) {
             )}
 
             {/* Overview Specs Strip */}
-            <div className="flex justify-around items-center py-4 px-6 bg-emerald-50/70 rounded-xl border border-emerald-100">
-                {overviewSpecs}
+            <div className="grid grid-cols-2 sm:flex sm:justify-around items-center py-4 px-4 sm:px-6 bg-emerald-50/70 rounded-xl border border-emerald-100 gap-3">
+              {overviewSpecs}
             </div>
 
             {/* Description Section */}
@@ -202,66 +254,99 @@ export default function VehicleDetail({ vehicle }: Props) {
             
           </div>
 
-          {/* Booking/Call-to-Action Panel - Takes 4/12 columns on large screens */}
-          <aside className="lg:col-span-4 space-y-8">
-            <div className="sticky top-20 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-              
-              {/* Pricing Block */}
-              <div className="mb-6 pb-4 border-b border-gray-200">
-                <p className="text-lg font-semibold text-slate-500 mb-1">Daily Rental Rate</p>
-                <div className="flex items-baseline">
-                    <DollarSign className="w-8 h-8 text-emerald-600 mr-2" />
-                    <span className="text-4xl font-extrabold text-slate-900">{priceDisplay}</span>
-                    <span className="text-xl text-gray-500 ml-2"></span>
-                </div>
-              </div>
+            {/* Booking/Call-to-Action Panel - modern, responsive */}
+            <aside className="lg:col-span-4 space-y-4 lg:space-y-12 w-full order-last lg:order-none">
+              <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl shadow-xl border border-gray-100 lg:sticky lg:top-20">
 
-              {/* Availability Status (Mobile/Aside visibility) */}
-              <div className="mb-6">
-                <div className="flex items-center gap-3">
-                    <Badge variant={available ? 'default' : 'destructive'} className={`text-base font-mono px-4 py-1 ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {available ? (<><Check className="w-4 h-4 mr-2"/> Ready to Book</>) : (<><X className="w-4 h-4 mr-2"/> Fully Booked</>) }
+                {/* Top: Price, label, availability */}
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <p className="text-sm text-slate-500 font-semibold">Daily Rental</p>
+                    <div className="flex items-baseline gap-3">
+                      <DollarSign className="w-5 h-5 text-emerald-600" />
+                      <span className={`text-3xl sm:text-4xl lg:text-4xl font-extrabold text-slate-900 transition-transform ${priceBump ? 'scale-105' : 'scale-100'}`}>{priceDisplay}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant={available ? 'default' : 'destructive'} className={`text-sm font-semibold px-3 py-1 ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {available ? 'Ready to Book' : 'Fully Booked'}
                     </Badge>
+                  </div>
                 </div>
+
+                {/* Duration selector + Date/Time */}
+                <div className="mb-4">
+                  <label className="text-sm font-medium text-slate-700">Duration (days)</label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <button
+                      onClick={() => setDays(d => Math.max(1, d - 1))}
+                      className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-lg hover:bg-gray-50"
+                      aria-label="Decrease days"
+                    >
+                      –
+                    </button>
+                    <div className="px-4 py-2 rounded-lg border border-gray-200 min-w-[64px] text-center font-medium">{days}</div>
+                    <button
+                      onClick={() => setDays(d => Math.min(30, d + 1))}
+                      className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-lg hover:bg-gray-50"
+                      aria-label="Increase days"
+                    >
+                      +
+                    </button>
+                    <div className="ml-auto text-right">
+                      <div className="text-xs text-gray-500">Total</div>
+                      <div className="text-sm font-semibold">{totalDisplay}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-sm sm:text-md font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-emerald-600" /> Pickup
+                </h3>
+
+                <div className="space-y-3 mb-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <input
+                      type="date"
+                      min={new Date().toISOString().slice(0, 10)}
+                      value={rentalDate}
+                      onChange={(e) => setRentalDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-xl w-full sm:w-1/2 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
+                      aria-label="Rental pickup date"
+                    />
+                    <input
+                      type="time"
+                      value={rentalTime}
+                      onChange={(e) => setRentalTime(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-xl w-full sm:w-1/2 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
+                      aria-label="Rental pickup time"
+                    />
+                  </div>
+
+                  <div className="text-xs text-gray-500 hidden sm:flex justify-center items-center">
+                    Pickup: <span className="font-medium text-slate-700 ml-1">{rentalDate} at {rentalTime}</span>
+                  </div>
+                </div>
+
+                {/* Primary actions */}
+                <div className="flex flex-col items-center space-y-3">
+                  <Button
+                    className="w-4/5 mx-auto text-base sm:text-lg py-3 sm:py-4 bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition duration-300"
+                    onClick={handleRentNow}
+                    disabled={!available}
+                    aria-label={available ? 'Rent via WhatsApp' : 'Notify me when available'}
+                  >
+                    <IconBrandWhatsapp className="w-4 h-4 sm:w-5 sm:h-5 mr-3" />
+                    <span className="truncate">{available ? `Rent ${days} day${days > 1 ? 's' : ''}` : 'Notify Me'}</span>
+                  </Button>
+                </div>
+
+                
               </div>
+
               
-              {/* Pickup Selection */}
-              <h3 className="text-md font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-emerald-600" /> Secure Your Dates
-              </h3>
-              
-              <div className="space-y-3 mb-6">
-                <input
-                    type="date"
-                    value={rentalDate}
-                    onChange={(e) => setRentalDate(e.target.value)}
-                    className="px-4 py-3 border border-gray-300 rounded-xl w-4/5 text-md focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
-                    aria-label="Rental pickup date"
-                />
-                <input
-                    type="time"
-                    value={rentalTime}
-                    onChange={(e) => setRentalTime(e.target.value)}
-                    className="px-4 py-3 border border-gray-300 rounded-xl w-4/5 text-md focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
-                    aria-label="Rental pickup time"
-                />
-              </div>
-
-              {/* Action Button */}
-              <Button 
-                className="w-full text-lg py-6 bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 hover:shadow-xl transition duration-300" 
-                onClick={handleRentNow}
-                disabled={!available}
-              >
-                <IconBrandWhatsapp className="w-5 h-5 mr-3" /> 
-                {available ? 'Rent Via WhatsApp' : 'Notify Me When Available'}
-              </Button>
-              <p className="text-center text-xs text-gray-500 mt-3">Guaranteed response within 1 hour via WhatsApp.</p>
-            </div>
-
-            
-
-          </aside>
+            </aside>
         </div>
       </div>
     </div>

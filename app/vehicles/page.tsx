@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   Check,
@@ -23,6 +24,8 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import CountUp from "@/components/ui/CountUp";
+import Image from "next/image";
 
 // --- Types ---
 type Vehicle = {
@@ -90,17 +93,7 @@ const Dialog = ({
   );
 };
 
-const DialogContent = ({ 
-  children, 
-  className = "" 
-}: { 
-  children?: React.ReactNode; 
-  className?: string;
-}) => (
-  <div className={`bg-white rounded-lg shadow-xl w-full max-w-4xl ${className}`}>
-    {children}
-  </div>
-);
+
 
 // --- Filter Sidebar Component ---
 const VehicleFilterSidebar = ({ 
@@ -444,13 +437,13 @@ export default function VehiclesPage() {
           }
         }}
       >
-        <Card className={`h-full  flex flex-col overflow-hidden border-2 transition-colors ${
+        <Card className={`h-full   flex flex-col overflow-hidden border-2 transition-colors ${
           isUnavailable 
             ? 'border-gray-200' 
             : 'border-gray-200 hover:border-primary/30'
         }`}>
           {/* Image Section */}
-          <CardHeader className="relative p-0 h-48 overflow-hidden">
+          <CardHeader className="relative p-0 h-48  overflow-hidden">
             <img
               src={vehicle.mainImage}
               alt={vehicle.name}
@@ -466,19 +459,17 @@ export default function VehiclesPage() {
             </div>
             
             {/* Status Badge */}
-            <div className="absolute top-3 right-3">
+            <div className="absolute top-3 right-3 bg-emerald-400 rounded-full p-1">
               <Badge 
                 variant={vehicle.available ? "default" : "destructive"} 
                 className="flex items-center gap-1 text-xs font-semibold shadow-lg"
               >
                 {vehicle.available ? (
                   <>
-                    <Check className="w-3 h-3" />
                     Available
                   </>
                 ) : (
                   <>
-                    <X className="w-3 h-3" />
                     Unavailable
                   </>
                 )}
@@ -487,14 +478,16 @@ export default function VehiclesPage() {
           </CardHeader>
 
           {/* Content Section */}
-          <CardContent className="flex-1 p-4 space-y-3">
-            <div className="flex justify-between items-start">
-              <p className="text-gray-600 text-sm font-medium">{vehicle.brand}</p>
-              <p className="text-xl font-bold text-primary">{vehicle.price}</p>
+          <CardContent className="flex-1 px-8">
+            <div className="flex justify-between items-start mx-3">
+              <p className="text-gray-600 text-md font-medium">{vehicle.brand}</p>
+              <p className="text-xl font-bold ">{vehicle.price}
+                
+              </p>
             </div>
 
             {/* Feature Badges */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-3 mt-4">
               <Badge variant="secondary" className="text-xs capitalize">
                 {vehicle.type}
               </Badge>
@@ -516,17 +509,17 @@ export default function VehiclesPage() {
           </CardContent>
 
           {/* Actions Section */}
-          <CardFooter className="p-4 pt-0 flex gap-2">
+          <CardFooter className="py-2 px-6 pt-0 flex gap-4">
             <Button 
               variant="outline" 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                openVehicleDetails(vehicle); 
-              }} 
-              className="flex-1"
+              onClick={() => {
+                      closeVehicleDetails();
+                      vehicle.id && router.push(`/vehicles/${vehicle.id}`);
+                    }}
+              className="flex-1 bg-emerald-500/10  hover:bg-emerald-500/20  border-emerald-500 text-emerald-700  hover:text-emerald-800  transition-colors"
               disabled={isUnavailable}
             >
-              Quick View
+              View Details
             </Button>
 
             {isAdmin && (
@@ -538,7 +531,7 @@ export default function VehiclesPage() {
                   handleEditVehicle(vehicle.id); 
                 }}
                 title="Edit Vehicle"
-                className="shrink-0"
+                className="shrink-0 bg-amber-700/10 hover:bg-amber-700/20 border-amber-700 text-amber-800 hover:text-amber-900 transition-colors"
               >
                 <Pencil className="w-4 h-4" />
               </Button>
@@ -568,100 +561,196 @@ export default function VehiclesPage() {
     </div>
   );
 
+  const CRCabLogo = () => {
+  return (
+    <Link
+      href="/"
+      className="relative z-20 mr-4 flex items-center space-x-3 px-3 py-1 xl:py-2 text-lg font-normal text-black"
+    >
+      <Image
+        src="/logo3.png"
+        alt="CR Cab Service Logo"
+        width={40}
+        height={40}
+        className="w-10 h-10"
+      />
+      <span className="font-bold text-black dark:text-white text-xl">
+        <span className="hidden sm:inline">CR Cab Service</span>
+        <span className="sm:hidden">CR Cab Service</span>
+      </span>
+    </Link>
+  );
+};
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto p-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Title and Navigation */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg">
-                <Car className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Our Fleet</h1>
-                <p className="text-gray-600 text-sm">
-                  {loading ? 'Loading...' : `${filteredAndSortedVehicles.length} vehicles available`}
-                </p>
-              </div>
+      <div className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-4 justify-between">
+        {/* Left: Logo + Title */}
+        <div className="flex items-center gap-4 w-full lg:w-auto">
+          <CRCabLogo />
+          
+        </div>
+
+        {/* Center: Search (fills available space on narrow screens) */}
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          <div className="relative w-full lg:max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+          type="text"
+          aria-label="Search vehicles"
+          placeholder="Search by name, brand or type..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 pr-10 py-2"
+            />
+            {searchTerm && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSearchTerm("")}
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+            aria-label="Clear search"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Sort, Filter, Add, Count */}
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative">
+          <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <select
+            aria-label="Sort vehicles"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortByType)}
+            className="px-3 pl-8 py-2 text-sm border rounded-md bg-white focus:ring-primary focus:border-primary w-44"
+          >
+            <option value="newest">Newest First</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+          </select>
             </div>
 
-            {/* Search and Controls */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              {/* Search Input */}
-              <div className="relative flex-1 lg:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search vehicles..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4"
-                />
-              </div>
+            
 
-              {/* Sort Dropdown */}
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortByType)}
-                    className="pl-10 pr-8 py-2 text-sm border rounded-md bg-white focus:ring-primary focus:border-primary w-full appearance-none"
-                  >
-                    <option value="newest">Newest First</option>
-                    <option value="priceAsc">Price: Low to High</option>
-                    <option value="priceDesc">Price: High to Low</option>
-                  </select>
-                </div>
+            {/* Mobile filter button */}
+            <Button
+          variant="outline"
+          onClick={() => setIsFilterSidebarOpen(true)}
+          className="relative lg:hidden"
+          aria-label="Open filters"
+            >
+          <Filter className="w-4 h-4" />
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+            </Button>
+          </div>
 
-                {/* Mobile Filter Toggle */}
-                <Button
-                  variant="outline"
-                  onClick={() => setIsFilterSidebarOpen(true)}
-                  className="lg:hidden relative"
-                >
-                  <Filter className="w-4 h-4" />
-                  {activeFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </Button>
-              </div>
+          {isAdmin && (
+            <Button
+          onClick={() => router.push("/add-car")}
+          className="gap-2 shrink-0 ml-1"
+            >
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Add Vehicle</span>
+            </Button>
+          )}
 
-              {/* Admin Action */}
-              {isAdmin && (
-                <Button 
-                  onClick={() => router.push("/add-car")} 
-                  className="gap-2 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Vehicle
-                </Button>
-              )}
-
-              {/* Home Button */}
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push("/")} 
-                className="gap-2 shrink-0"
+            <div className="ml-2 text-right">
+              <p
+                className="text-sm font-medium text-gray-800 flex items-center justify-end gap-3"
+                aria-live="polite"
               >
-                <Home className="w-4 h-4" />
-                <span className="hidden sm:inline">Home</span>
-              </Button>
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <svg
+                      className="w-4 h-4 animate-spin text-gray-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      ></path>
+                    </svg>
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-2">
+                      <Car className="w-4 h-4 text-primary" />
+                      <span className="text-lg font-semibold text-gray-900">
+                        <CountUp
+                          to={filteredAndSortedVehicles.length}
+                          duration={0.9}
+                          className="inline-block"
+                        />
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {filteredAndSortedVehicles.length === 1 ? "vehicle" : "vehicles"}
+                      </span>
+                    </span>
+
+                    
+                  </div>
+                )}
+              </p>
             </div>
+        </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-4">
+          {/* Main Content */}
+      <div className="max-w-7xl mx-auto py-6 px-10 md:px-20 sm:px-8 lg:px-2">
+        {/* Mobile Filter Dialog */}
+        <Dialog open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
+          <div className="fixed left-3 top-44 w-full max-w-sm z-50 lg:hidden">
+            <Card className="h-[45vh] overflow-auto relative top-0">
+              <div className="px-4 flex items-center justify-between border-b">
+                <h3 className="text-lg font-semibold">Filters</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsFilterSidebarOpen(false)}
+                  aria-label="Close filters"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="p-0">
+                <VehicleFilterSidebar
+                  filters={filters}
+                  setFilters={(f) => setFilters(f)}
+                  clearFilters={() => { clearAllFilters(); setIsFilterSidebarOpen(false); }}
+                  activeFilterCount={activeFilterCount}
+                />
+              </div>
+            </Card>
+          </div>
+        </Dialog>
         <div className="flex gap-6">
           {/* Desktop Filter Sidebar - Fixed to left top */}
           {/* Desktop Filter Sidebar - fixed to left of viewport */}
-          <aside className="hidden lg:block w-80 shrink-0 fixed left-3 top-24 h-[calc(90vh-6rem)] z-30">
+          <aside className="hidden lg:block w-72 shrink-0 fixed left-3 top-24 h-[calc(95vh-6rem)] z-30">
             <Card className="border-2 shadow-lg h-full overflow-auto">
               <VehicleFilterSidebar
                 filters={filters}
@@ -673,11 +762,11 @@ export default function VehiclesPage() {
           </aside>
 
           {/* Vehicle Grid */}
-          <main className="flex-1 min-w-0 lg:ml-[20rem]">
+          <main className="flex-1 min-w-0 lg:ml-[13rem] ml-0">  
             {loading ? (
               <LoadingSkeleton />
             ) : error ? (
-              <div className="text-center py-12">
+              <div className="flex flex-col items-center justify-center min-h-[calc(90vh-6rem)] text-center px-4">
                 <div className="bg-destructive/10 border border-destructive/50 rounded-xl p-8 max-w-md mx-auto">
                   <h3 className="text-xl font-semibold text-destructive mb-2">
                     Error Loading Vehicles
@@ -689,8 +778,8 @@ export default function VehiclesPage() {
                 </div>
               </div>
             ) : filteredAndSortedVehicles.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="max-w-sm mx-auto">
+              <div className="flex flex-col items-center justify-center min-h-[calc(95vh-6rem)] text-center px-4">
+                
                   <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     No vehicles found
@@ -706,12 +795,12 @@ export default function VehiclesPage() {
                       Clear All Filters
                     </Button>
                   )}
-                </div>
+                
               </div>
             ) : (
               <motion.div 
                 layout
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4"
               >
                 {filteredAndSortedVehicles.map((vehicle) => (
                   <VehicleCard key={vehicle.id} vehicle={vehicle} />
@@ -722,118 +811,9 @@ export default function VehiclesPage() {
         </div>
       </div>
 
-      {/* Mobile Filter Dialog */}
-      <Dialog open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
-        <DialogContent className="h-[80vh] flex flex-col">
-          <VehicleFilterSidebar
-            filters={filters}
-            setFilters={setFilters}
-            clearFilters={() => {
-              clearAllFilters();
-              setIsFilterSidebarOpen(false);
-            }}
-            activeFilterCount={activeFilterCount}
-          />
-        </DialogContent>
-      </Dialog>
 
-      {/* Vehicle Details Dialog */}
-      <Dialog open={!!selectedVehicle} onOpenChange={closeVehicleDetails}>
-        <DialogContent className="max-w-4xl">
-          {selectedVehicle && (
-            <div className="grid md:grid-cols-2 gap-6 p-6">
-              {/* Image */}
-              <div className="rounded-lg overflow-hidden">
-                <img
-                  src={selectedVehicle.mainImage}
-                  alt={selectedVehicle.name}
-                  className="w-full h-64 md:h-80 object-cover"
-                />
-              </div>
 
-              {/* Details */}
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {selectedVehicle.name}
-                  </h2>
-                  <p className="text-gray-600">{selectedVehicle.brand}</p>
-                </div>
 
-                <div className="space-y-3">
-                  <p className="text-3xl font-bold text-primary">
-                    {selectedVehicle.price}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="font-semibold">Type:</span>
-                      <Badge variant="secondary" className="ml-2 capitalize">
-                        {selectedVehicle.type}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Fuel:</span>
-                      <Badge variant="outline" className="ml-2 capitalize">
-                        {selectedVehicle.fuelType}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Transmission:</span>
-                      <Badge variant="outline" className="ml-2 capitalize">
-                        {selectedVehicle.transmission}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Seats:</span>
-                      <Badge variant="outline" className="ml-2">
-                        <Users className="w-3 h-3 inline mr-1" />
-                        {selectedVehicle.seats}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <AirVent className="w-4 h-4" />
-                    <span className="font-semibold">AC:</span>
-                    <Badge
-                      variant={selectedVehicle.hasAC ? "default" : "outline"}
-                      className={selectedVehicle.hasAC ? "bg-green-100 text-green-700" : ""}
-                    >
-                      {selectedVehicle.hasAC ? "Available" : "Not Available"}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    onClick={() => {
-                      closeVehicleDetails();
-                      selectedVehicle.id && router.push(`/vehicles/${selectedVehicle.id}`);
-                    }}
-                    className="flex-1"
-                  >
-                    View Full Details
-                  </Button>
-                  
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        handleEditVehicle(selectedVehicle.id);
-                        closeVehicleDetails();
-                      }}
-                    >
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

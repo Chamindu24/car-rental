@@ -4,48 +4,87 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion, useAnimation } from "framer-motion";
 import { ChevronRight, Dot, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+// Assuming the path to TypewriterEffect is correct, based on your import:
+import { TypewriterEffect } from "./ui/typewriter-effect"; 
 import { GridBackground } from "./DotBackground";
 
 export default function HeroSection() {
+  const [currentWord, setCurrentWord] = useState("Perfect");
   const controls = useAnimation();
   const textControls = useAnimation();
 
+  // Define the words for the TypewriterEffect for the body text
+  const words = [
+    {
+      text: "Premium",
+      className: "font-bold text-indigo-800",
+    },
+    {
+      text: "vehicles",
+      className: "font-semibold text-emerald-700",
+    },
+    {
+      text: "at",
+    },
+    {
+      text: "your",
+      className: "font-bold text-orange-700",
+    },
+    {
+      text: "fingertips.",
+      
+    },
+  ];
+  // Typewriter will be triggered by a prop passed to the component
+
   useEffect(() => {
+    let mounted = true;
+
     const loop = async () => {
-      while (true) {
+      while (mounted) {
         await controls.start({ scale: 1.05, transition: { duration: 0.9 } });
+        if (!mounted) break;
         await controls.start({ scale: 1, transition: { duration: 0.3 } });
+        if (!mounted) break;
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
     };
-    
+    loop();
+
+    // Text loop animation (index-based to avoid mismatch)
+    const adjectives = ["Dream", "Perfect", "Luxury", "Premium"];
+    let i = 0;
     const textLoop = async () => {
-      const adjectives = ["Dream", "Perfect", "Ideal", "Luxury", "Premium"];
-      while (true) {
-        for (const word of adjectives) {
-          await textControls.start({
-            opacity: 0,
-            y: 10,
-            transition: { duration: 0.3 }
-          });
-          await textControls.start({
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.3 }
-          });
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
+      while (mounted) {
+        await textControls.start({
+          opacity: 0,
+          y: 10,
+          transition: { duration: 0.3 }
+        });
+        if (!mounted) break;
+        setCurrentWord(adjectives[i]);
+        await textControls.start({
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.3 }
+        });
+        if (!mounted) break;
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        i = (i + 1) % adjectives.length;
       }
     };
 
-    loop();
     textLoop();
+
+    return () => {
+      mounted = false;
+    };
   }, [controls, textControls]);
 
   return (
     <GridBackground>
-      <section className="relative  bg-gradient-to-br from-neutral-50/80 to-neutral-100/80 text-black py-8 md:py-22 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-neutral-50/80 to-neutral-100/80 text-black py-6 md:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Decorative elements with gray/ash accents - hidden/reduced on small screens */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="hidden md:block absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-gray-600/5 to-transparent" />
@@ -69,15 +108,18 @@ export default function HeroSection() {
                   className="inline-block italic text-gray-600"
                   animate={textControls}
                 >
-                  Perfect
+                  {currentWord}
                 </motion.span>{" "}
                 Ride
               </span>
             </h1>
 
             <p className="text-[0.85rem] sm:text-sm md:text-lg text-gray-600 max-w-full sm:max-w-md md:max-w-lg mx-auto md:mx-0 leading-relaxed break-words">
-              <span className="font-semibold text-gray-700">Premium vehicles</span> at your
-              fingertips. Whether you need a driver or want to take the wheel yourself,
+              {/* Typewriter Effect added here (triggers after 1500ms) */}
+              <TypewriterEffect words={words} triggerAfterMs={1500} />
+              
+              {/* Remaining text follows the Typewriter effect */}
+              {" "}Whether you need a driver or want to take the wheel yourself,
               experience the{" "}
               <span className="relative inline-block">
                 <span className="relative z-10">thrill of luxury</span>
@@ -92,7 +134,7 @@ export default function HeroSection() {
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-3 w-full items-center sm:items-stretch">
-              <Link href="/rent?driver=true" className="w-3/4 sm:w-auto">
+              <Link href="/vehicles" className="w-3/4 sm:w-auto">
                 <Button
                   size="lg"
                   className="w-full sm:w-auto text-sm sm:text-base bg-gradient-to-r from-gray-800 to-gray-600 hover:from-gray-700 hover:to-gray-500 text-white shadow-lg transition-all group"
@@ -114,7 +156,7 @@ export default function HeroSection() {
                 </Button>
               </Link>
 
-              <Link href="/rent?driver=false" className="w-3/4 sm:w-auto">
+              <Link href="/vehicles" className="w-3/4 sm:w-auto">
                 <Button
                   size="lg"
                   variant="outline"
