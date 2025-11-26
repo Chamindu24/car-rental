@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: any) {
   try {
-    const { id } = params;
+    const rawId = params.id;
+    const idStr = Array.isArray(rawId) ? rawId[0] : rawId;
     const db = await getDb();
     const vehicle = await db.collection('vehicles').findOne({
-      _id: new ObjectId(id)
+      _id: new ObjectId(idStr)
     });
 
     if (!vehicle) {
@@ -26,14 +27,15 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: any) {
   try {
-    const { id } = params;
+    const rawId = params.id;
+    const idStr = Array.isArray(rawId) ? rawId[0] : rawId;
     const db = await getDb();
     const vehicleData = await request.json();
 
     const result = await db.collection('vehicles').updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(idStr) },
       { $set: vehicleData }
     );
 
@@ -53,12 +55,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: any) {
   try {
-    const { id } = params;
+    const rawId = params.id;
+    const idStr = Array.isArray(rawId) ? rawId[0] : rawId;
     const db = await getDb();
     const result = await db.collection('vehicles').deleteOne({
-      _id: new ObjectId(id)
+      _id: new ObjectId(idStr)
     });
 
     if (result.deletedCount === 0) {
