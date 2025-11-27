@@ -18,7 +18,7 @@ export default function HeroSection() {
   const words = [
     {
       text: "Premium",
-      className: "font-bold text-indigo-800",
+      className: "font-bold text-emerald-500",
     },
     {
       text: "vehicles",
@@ -26,13 +26,15 @@ export default function HeroSection() {
     },
     {
       text: "at",
+      className: "font-bold text-emerald-600",
     },
     {
       text: "your",
-      className: "font-bold text-orange-700",
+      className: "font-semibold text-emerald-700",
     },
     {
       text: "fingertips.",
+      className: "font-semibold text-emerald-800",
       
     },
   ];
@@ -201,7 +203,55 @@ export default function HeroSection() {
           </motion.div>
 
           {/* Car image - adjusted for mobile */}
-          <div className="relative w-full h-44 sm:h-72 md:h-80 lg:h-96 md:mt-0 flex items-center justify-center">
+            <div className="order-1 md:order-none relative w-full h-44 sm:h-72 md:h-80 lg:h-96 md:mt-0 flex items-center justify-center">
+            {/* Morphing clipped background (different shape by animating clip-path polygons) */}
+<motion.div
+  className="absolute inset-0 bg-gradient-to-tr from-emerald-400 via-emerald-500 to-emerald-600 opacity-85 filter blur-xl scale-80 sm:scale-80 md:scale-100 lg:scale-100"
+  style={{ mixBlendMode: "normal" }}
+  initial={{
+
+    opacity: 1,
+    rotate: 0,
+    clipPath:
+      "polygon(20% 0%, 80% 0%, 100% 25%, 85% 70%, 60% 100%, 30% 85%, 10% 50%, 0% 20%)",
+  }}
+  animate={{
+    scale: [1, 1.02, 1.04, 1.02, 1],
+    rotate: [0, 1.5, 0, -1.5, 0],
+    opacity: 1,
+    clipPath: [
+      "polygon(20% 0%, 80% 0%, 100% 25%, 85% 70%, 60% 100%, 30% 85%, 10% 50%, 0% 20%)",
+
+      "polygon(5% 8%, 70% 0%, 100% 35%, 85% 80%, 55% 100%, 25% 90%, 8% 60%, 0% 30%)",
+
+      "polygon(28% 0%, 95% 10%, 100% 55%, 68% 100%, 35% 95%, 12% 65%, 0% 35%, 20% 5%)",
+
+      "polygon(10% 3%, 75% 0%, 100% 45%, 90% 90%, 50% 100%, 20% 92%, 5% 55%, 0% 25%)",
+
+      "polygon(20% 0%, 80% 0%, 100% 25%, 85% 70%, 60% 100%, 30% 85%, 10% 50%, 0% 20%)"
+    ],
+  }}
+  transition={{
+    duration: 28,
+    repeat: Infinity,
+    ease: "easeInOut",
+  }}
+/>
+
+
+            {/* Subtle radial glow overlay for depth */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+              background:
+                "radial-gradient(40% 60% at 30% 40%, rgba(255,255,255,0.06), transparent 20%), radial-gradient(30% 40% at 70% 65%, rgba(0,0,0,0.06), transparent 25%)"
+              }}
+            />
+
+            {/* Main car image */}
             <motion.img
               src="/car.png"
               alt="Luxury Car Rental"
@@ -210,6 +260,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
+
             {/* animated pulse copy hidden on very small screens to save performance */}
             <motion.img
               src="/car.png"
@@ -224,14 +275,14 @@ export default function HeroSection() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <motion.div 
-                className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
+              <motion.div
+              className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
               />
               <span className="text-[0.6rem] sm:text-xs md:text-sm font-medium">24/7</span>
             </motion.div>
-          </div>
+            </div>
         </div>
       </section>
     </GridBackground>

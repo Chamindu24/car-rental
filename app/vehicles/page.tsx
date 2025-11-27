@@ -518,7 +518,7 @@ export default function VehiclesPage() {
                       ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(vehicle.price)
                       : vehicle.price
                             }`}
-                            className="inline-flex items-center px-4 py-1 rounded-full bg-gradient-to-r from-yellow-200 via-yellow-100 to-amber-200 text-black font-extrabold text-md sm:text-md shadow-lg ring-1 ring-amber-200 transform transition-all duration-300 group-hover:scale-105 "
+                            className="inline-flex items-center px-4 py-1 rounded-lg bg-gradient-to-r from-yellow-200 via-yellow-100 to-amber-200 text-black font-bold text-md sm:text-md shadow-lg ring-1 ring-red-500 transform transition-all duration-300 group-hover:scale-105 "
                           >
                             {typeof vehicle.price === "number"
                               ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(vehicle.price)
@@ -558,7 +558,7 @@ export default function VehiclesPage() {
                       closeVehicleDetails();
                       vehicle.id && router.push(`/vehicles/${vehicle.id}`);
                     }}
-              className="flex-1 bg-emerald-500/10  hover:bg-emerald-500/20  border-emerald-500 text-emerald-700  hover:text-emerald-800  transition-colors"
+              className="flex-1 w-full sm:w-auto px-6 sm:px-10   py-1  text-black font-medium ring-2 ring-red-500 rounded-xs shadow-md hover:bg-white transition-colors"
               disabled={isUnavailable}
             >
               View Details

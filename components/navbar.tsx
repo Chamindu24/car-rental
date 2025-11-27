@@ -106,9 +106,9 @@ export default function CRCabNavbar() {
         {/* Desktop Navigation */}
         <NavBody className="py-2 mt-4  ">
           <CRCabLogo />
-          <div className="flex gap-8 text-base font-medium text-gray-600 dark:text-gray-300 mr-14">
+          <div className="flex gap-8 text-lg font-medium text-gray-600 dark:text-gray-300 mr-14">
             {navItems.map((item, idx) => {
-              const commonClasses = "relative inline-block cursor-pointer px-2 py-0.5 text-gray-600 dark:text-gray-300 font-medium before:absolute before:bottom-0 before:left-0 before:h-[1px] before:w-0 before:bg-gray-700 dark:before:bg-gray-300 before:transition-all before:duration-300 hover:before:w-full transform transition-transform duration-300 hover:scale-105";
+              const commonClasses = "relative inline-block cursor-pointer px-2 py-0.5 text-gray-600 dark:text-gray-300 font-medium before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-0 before:bg-gray-700 dark:before:bg-gray-300 before:transition-all before:duration-300 hover:before:w-full transform transition-transform duration-300 hover:scale-105";
               // Special-case chat-like items to open chatbot modal
               const lower = item.name.toLowerCase();
               if (lower.includes("ask") || lower.includes("chat")) {

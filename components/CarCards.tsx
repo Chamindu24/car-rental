@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import type { Vehicle } from "@/types/vehicle";
+import { AirVent, Fuel, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Enhanced HoverEffect component with black & ash styling
 type HoverEffectItem = {
@@ -267,49 +269,79 @@ export default function EnhancedCarCards() {
                   key: vehicleId,
                   content: (
                     <Link href={`/vehicles/${vehicleId}`} aria-label={`View ${car.name}`} className="block w-full h-full focus:outline-none">
-                      <Card available={car.available} className="group">
-                        <CardHeader>
-                          <div className="relative w-full h-36 sm:h-40 md:h-44 lg:h-48 mb-3 overflow-hidden rounded-2xl">
-                            <img
-                              src={car.image}
-                              alt={car.name}
-                              className="w-full h-full object-cover object-center transition-transform duration-700 transform group-hover:scale-105 group-focus:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                            <div
-                              className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 transform group-hover:scale-110 ${
-                                car.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                              }`}
-                            >
-                              {car.available ? "Available" : "Not Available"}
-                            </div>
-                          </div>
-                          <CardTitle><div className="text-center tracking-wider text-base sm:text-lg md:text-xl">{car.name}</div></CardTitle>
-                        </CardHeader>
+                      <Card available={car.available} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-500">
+  <CardHeader>
+    <div className="relative w-full h-44 sm:h-48 md:h-56 lg:h-60 overflow-hidden rounded-2xl">
+      <img
+        src={car.image}
+        alt={car.name}
+        className="w-full h-full object-cover object-center transition-transform duration-700 transform group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div
+        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 transform group-hover:scale-110 ${
+          car.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
+        }`}
+      >
+        {car.available ? "Available" : "Not Available"}
+      </div>
 
-                        <CardContent>
-                          <div className="flex flex-row flex-wrap items-center px-12 sm:px-12 gap-2 justify-between text-sm sm:text-base text-gray-800">
-                            <div className="transform group-hover:scale-105 transition-transform duration-300">{car.brand}</div>
-                            <div className="transform group-hover:scale-105 transition-transform duration-300">{car.seats} Seats</div>
-                            <div className="transform group-hover:scale-105 transition-transform duration-300">{((car as any).hasAC ?? (car as any).ac) ? "Air Conditioned" : "No AC"}</div>
-                          </div>
-                          <div className="flex justify-center mt-3">
-                            <div
-                              role="status"
-                              aria-label={`Price ${
-                                typeof car.price === "number"
-                                  ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(car.price)
-                                  : car.price
-                              }`}
-                              className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-yellow-200 via-yellow-100 to-amber-200 text-black font-extrabold text-lg sm:text-xl shadow-lg ring-1 ring-amber-200 transform transition-all duration-300 group-hover:scale-105 "
-                            >
-                              {typeof car.price === "number"
-                                ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(car.price)
-                                : car.price}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+      {/* Price badge placed on the opposite (left) side of the availability badge */}
+      <div
+        role="status"
+        aria-label={`Price ${
+          typeof car.price === "number"
+            ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(car.price)
+            : car.price
+        }`}
+        className="absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-yellow-300 via-yellow-200 to-amber-300 ring-2 ring-red-400 text-black shadow-sm"
+      >
+        {typeof car.price === "number"
+          ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(car.price)
+          : car.price}
+      </div>
+      <div className=" absolute bottom-4 left-4 text-white tracking-wide text-lg sm:text-xl md:text-2xl font-semibold mt-3">
+        {car.name}
+      </div>
+    </div>
+ 
+  </CardHeader>
+
+  <CardContent>
+    <div className="flex flex-wrap justify-between items-center text-gray-700 text-sm sm:text-base gap-2 px-4 sm:px-6">
+      <div className="flex flex-wrap gap-3 mt-4">
+              <Badge variant="secondary" className="text-xs capitalize">
+                {car.brand}
+              </Badge>
+              
+              <Badge variant="outline" className="text-xs flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {car.seats}
+              </Badge>
+              <Badge variant="outline" className="text-xs capitalize flex items-center gap-1">
+                <Fuel className="w-3 h-3" />
+                {car.fuelType}
+              </Badge>
+              {car.hasAC && (
+                <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-green-100 text-green-700">
+                  <AirVent className="w-3 h-3" />
+                  AC
+                </Badge>
+              )}
+            </div>
+    </div>
+
+    <div className="flex flex-col sm:flex-row  justify-center items-center mt-4 px-4 sm:px-6 gap-3">
+      <button
+        className="w-full sm:w-auto px-6 sm:px-10   py-1  text-black font-medium ring-2 ring-red-500 rounded-xs shadow-md hover:bg-white "
+      >
+        Book Now
+      </button>
+    </div>
+  </CardContent>
+</Card>
+
                     </Link>
                   ),
                 };
